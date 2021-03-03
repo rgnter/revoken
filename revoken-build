@@ -1,0 +1,4 @@
+cd scripts
+sh native
+cd ..
+mvn clean package

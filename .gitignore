@@ -1,0 +1,5 @@
+.idea/
+target/
+
+scripts/tmp
+dependency-reduced-pom.xml

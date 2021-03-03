@@ -1,0 +1,13 @@
+PAPERCLIP="paperclip.jar"
+if test -f "tmp/$PAPERCLIP"; then
+    echo "Paperclip jar exists skip"
+else
+    mkdir scripts
+    mkdir scripts/tmp
+    echo "Downloading & installing paperclip jar"
+
+    curl https://papermc.io/api/v1/paper/1.16.4/latest/download --output "tmp/$PAPERCLIP"
+    cd "tmp"
+    java -Dpaperclip.install=true -jar "$PAPERCLIP"
+    cd ..
+fi
