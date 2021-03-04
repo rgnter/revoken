@@ -7,3 +7,10 @@ softdepend:
   - PlaceholderAPI
 
 website: https://battleland.eu
+
+permissions:
+  revoken:
+    sit:
+      default: true
+    admin:
+      default: OP

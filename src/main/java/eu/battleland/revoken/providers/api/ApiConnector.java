@@ -19,6 +19,8 @@ public class ApiConnector {
             URL url = new URL(rawUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.connect();
+            if(connection.getResponseCode() != 200)
+                return null;
 
             StringBuilder response = new StringBuilder();
             int b;
@@ -30,6 +32,7 @@ public class ApiConnector {
             } while (b != -1);
 
             connection.disconnect();
+            System.out.println(response);
             return new Gson().fromJson(response.toString(), JsonObject.class);
         } catch (MalformedURLException e) {
             log.error("Malformed url: " + rawUrl);

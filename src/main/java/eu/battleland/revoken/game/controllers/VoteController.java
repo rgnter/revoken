@@ -4,8 +4,10 @@ import eu.battleland.revoken.RevokenPlugin;
 import eu.battleland.revoken.abstracted.AController;
 import eu.battleland.revoken.providers.api.ApiConnector;
 import eu.battleland.revoken.providers.storage.flatfile.store.AStore;
+import eu.battleland.revoken.statics.PlaceholderStatics;
 import lombok.extern.log4j.Log4j2;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
@@ -34,6 +36,10 @@ public class VoteController extends AController {
     private @NotNull String rawCcReminder;
     private @NotNull String rawClReminder;
 
+    private boolean enabled;
+    private int taskId = -1;
+    private int updateTick = 360;
+
     private ConcurrentHashMap<UUID, Long> nextVote = new ConcurrentHashMap<>();
 
 
@@ -49,23 +55,7 @@ public class VoteController extends AController {
             log.error("Failed to provide config to VoteController", x);
         }
         loadSettings();
-
-        Bukkit.getScheduler().scheduleAsyncRepeatingTask(getInstance(), () -> {
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                System.out.println("task");
-                var ccData = ApiConnector.getHttpApiResponse("http://czech-craft.eu/api/server/battleland-eu/player/" + player.getName() + "/next_vote/");
-                if(ccData == null || !ccData.has("next_vote"))
-                    return;
-                System.out.println("wData");
-                var nextVoteStr = ccData.get("next_vote").getAsString();
-                LocalDateTime nextVote = LocalDateTime.parse(nextVoteStr, this.ccDateFormat);
-                if(nextVote.isAfter(LocalDateTime.now()))
-                {
-                    player.sendMessage(this.rawCcReminder);
-                    System.out.println("message");
-                }
-            });
-        }, 20, 20*240);
+        setupTask();
     }
 
     @Override
@@ -80,12 +70,34 @@ public class VoteController extends AController {
         } catch (Exception x) {
             log.error("Failed to provide config to VoteController", x);
         }
+        loadSettings();
+        setupTask();
+    }
+
+    private void setupTask() {
+        if(taskId != -1)
+            Bukkit.getScheduler().cancelTask(this.taskId);
+        this.taskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(getInstance(), () -> {
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                var ccData = ApiConnector.getHttpApiResponse("https://czech-craft.eu/api/server/battleland-eu/player/" + player.getName() + "/next_vote/");
+                if(ccData == null || !ccData.has("next_vote"))
+                    return;
+                var nextVoteStr = ccData.get("next_vote").getAsString();
+                LocalDateTime nextVote = LocalDateTime.parse(nextVoteStr, this.ccDateFormat);
+                if(nextVote.isBefore(LocalDateTime.now()))
+                {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', PlaceholderStatics.askPapiForPlaceholders(this.rawCcReminder, player)));
+                }
+            });
+        }, 0, this.updateTick);
     }
 
     private void loadSettings() {
         var data = this.config.getData();
 
+        this.enabled = data.getBool("vote-reminder.enabled", false);
         this.rawCcReminder = String.join("\n", data.getStringList("vote-reminder.vote-again-czechcraft", new ArrayList<>()));
         this.rawClReminder = String.join("\n", data.getStringList("vote-reminder.vote-again-craftlist", new ArrayList<>()));
+        this.updateTick = data.getInt("vote-reminder.update-time", 360) * 20;
     }
 }
