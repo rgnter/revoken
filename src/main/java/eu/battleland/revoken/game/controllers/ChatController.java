@@ -78,7 +78,7 @@ public class ChatController extends AController implements Listener {
     }
 
     @Override
-    public void reloadResources() {
+    public void reload() {
         try {
             this.chatConfig.prepare();
         } catch (Exception x) {

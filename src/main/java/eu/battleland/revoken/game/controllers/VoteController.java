@@ -39,6 +39,7 @@ public class VoteController extends AController {
     private boolean enabled;
     private int taskId = -1;
     private int updateTick = 360;
+    private int remindCount = 3;
 
     private ConcurrentHashMap<UUID, Long> nextVote = new ConcurrentHashMap<>();
 
@@ -64,32 +65,36 @@ public class VoteController extends AController {
     }
 
     @Override
-    public void reloadResources() {
+    public void reload() {
         try {
             this.config.prepare();
         } catch (Exception x) {
             log.error("Failed to provide config to VoteController", x);
         }
         loadSettings();
-        setupTask();
+
+        if(this.enabled)
+            setupTask();
     }
 
     private void setupTask() {
-        if(taskId != -1)
+        if(this.taskId != -1)
             Bukkit.getScheduler().cancelTask(this.taskId);
         this.taskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(getInstance(), () -> {
             Bukkit.getOnlinePlayers().forEach(player -> {
                 var ccData = ApiConnector.getHttpApiResponse("https://czech-craft.eu/api/server/battleland-eu/player/" + player.getName() + "/next_vote/");
                 if(ccData == null || !ccData.has("next_vote"))
                     return;
+
                 var nextVoteStr = ccData.get("next_vote").getAsString();
                 LocalDateTime nextVote = LocalDateTime.parse(nextVoteStr, this.ccDateFormat);
                 if(nextVote.isBefore(LocalDateTime.now()))
                 {
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', PlaceholderStatics.askPapiForPlaceholders(this.rawCcReminder, player)));
                 }
+
             });
-        }, 0, this.updateTick);
+        }, this.updateTick, this.updateTick);
     }
 
     private void loadSettings() {
@@ -98,6 +103,8 @@ public class VoteController extends AController {
         this.enabled = data.getBool("vote-reminder.enabled", false);
         this.rawCcReminder = String.join("\n", data.getStringList("vote-reminder.vote-again-czechcraft", new ArrayList<>()));
         this.rawClReminder = String.join("\n", data.getStringList("vote-reminder.vote-again-craftlist", new ArrayList<>()));
+
         this.updateTick = data.getInt("vote-reminder.update-time", 360) * 20;
+        this.remindCount = data.getInt("vote-reminder.remind-count", 3);
     }
 }

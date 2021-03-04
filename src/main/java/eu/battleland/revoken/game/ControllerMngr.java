@@ -5,13 +5,7 @@ import eu.battleland.revoken.diagnostics.timings.Timer;
 import eu.battleland.revoken.game.controllers.ChatController;
 import eu.battleland.revoken.game.controllers.InterfaceController;
 import eu.battleland.revoken.game.controllers.VoteController;
-import eu.battleland.revoken.game.special.Sitting;
 import lombok.extern.log4j.Log4j2;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 @Log4j2(topic = "Revoken - ControllerMngr")
@@ -23,8 +17,6 @@ public class ControllerMngr {
     private @NotNull ChatController      chatController;
 
     private @NotNull VoteController      voteController;
-
-    private Sitting sitting;
 
     /**
      * Default constructor
@@ -66,22 +58,7 @@ public class ControllerMngr {
         }
         log.info("Constructed and Initialized Controllers in §e{}§rms", String.format("%.3f", timer.stop().resultMilli()));
 
-        {
-            this.sitting = new Sitting(plugin);
-            Bukkit.getPluginManager().registerEvents(this.sitting, plugin);
-            Bukkit.getCommandMap().register("revoken", new Command("sit") {
-                @Override
-                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) 
-                {
-                    if(!sender.hasPermission("revoken.sit"))
-                        return true;
 
-                    Player player = (Player) sender;
-                    sitting.sitOnLocation(player.getLocation().add(new Vector(0, -2.5, 0)), player);
-                    return true;
-                }
-            });
-        }
     }
 
     /**
@@ -91,11 +68,6 @@ public class ControllerMngr {
         Timer timer = Timer.timings().start();
         log.info("Terminating  Controllers");
         {
-            sitting.getEntites().forEach((entityUuid, data) -> {
-                var entity = Bukkit.getEntity(entityUuid);
-                entity.remove();
-            });
-
             try {
                 this.voteController.terminate();
             } catch (Exception e) {
@@ -117,9 +89,9 @@ public class ControllerMngr {
     }
 
     public void reload() {
-        this.interfaceController.reloadResources();
-        this.chatController.reloadResources();
-        this.voteController.reloadResources();
+        this.interfaceController.reload();
+        this.chatController.reload();
+        this.voteController.reload();
     }
 
 }

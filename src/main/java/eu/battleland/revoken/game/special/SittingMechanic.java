@@ -26,13 +26,13 @@ import xyz.rgnt.mth.tuples.Pair;
 import java.util.*;
 import java.util.concurrent.Executors;
 
-public class Sitting implements Listener {
+public class SittingMechanic implements Listener {
 
     private RevokenPlugin plugin;
     @Getter
     private TreeMap<UUID, Pair<UUID, Location>> entites = new TreeMap<>();
 
-    public Sitting(RevokenPlugin plugin) {
+    public SittingMechanic(RevokenPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -52,7 +52,7 @@ public class InterfaceController extends AController implements Listener {
     }
 
     @Override
-    public void reloadResources() {
+    public void reload() {
         try {
             this.config.prepare();
         } catch (Exception e) {
