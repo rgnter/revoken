@@ -53,12 +53,6 @@ chat:
       name: "BLOCK_BELL_USE"
       volume: 1
       pitch: 1
-  permission-color:
-    admin:
-      default-color: "<SOLID:ffcfcf>"
-    owner:
-      default-color: "<SOLID:FFC3C3>"
-    helper:
-      default-color: "<SOLID:FFEE95>"
-    builder:
-      default-color: "<SOLID:ffb795>"
+    messages:
+      somebody-mentioned-you: ""
+  permission-color: {}

@@ -20,10 +20,14 @@ import org.bukkit.permissions.PermissionDefault;
 import org.jetbrains.annotations.NotNull;
 import xyz.rgnt.mth.tuples.Pair;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.bukkit.Bukkit.getOnlinePlayers;
 
@@ -88,10 +92,14 @@ public class ChatController extends AController implements Listener {
         loadSettings();
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent event) {
         Player sender = event.getPlayer();
-        String message = event.getMessage();
+
+        // chat manager doesn't properly use event message, so we have to extract it from format with this hack
+        String format = event.getFormat();
+        int chatSeparatorIndex = format.indexOf("►");
+        String message = format.substring(chatSeparatorIndex);
 
         // PERMISSION COLOR
         StringBuffer colorMod = new StringBuffer();
@@ -137,7 +145,7 @@ public class ChatController extends AController implements Listener {
         if(disableBlanks && stripped.isBlank() || stripped.isEmpty())
             event.setCancelled(true);
 
-        event.setMessage(message);
+        event.setFormat(format.substring(0, chatSeparatorIndex) + message);
     }
 
     public void loadSettings() {

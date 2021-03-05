@@ -3,6 +3,7 @@ package eu.battleland.revoken.game;
 import eu.battleland.revoken.RevokenPlugin;
 import eu.battleland.revoken.abstracted.AMngr;
 import eu.battleland.revoken.diagnostics.timings.Timer;
+import eu.battleland.revoken.game.mechanics.SleepingRegenMechanic;
 import eu.battleland.revoken.game.special.SittingMechanic;
 import lombok.extern.log4j.Log4j2;
 import org.bukkit.Bukkit;
@@ -14,7 +15,9 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j2(topic = "Revoken - MechanicMngr")
@@ -24,8 +27,13 @@ public class MechanicMngr extends AMngr {
     private final ConcurrentHashMap<Integer, Runnable> syncTickables = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Runnable> asyncTickables = new ConcurrentHashMap<>();
 
-    private SittingMechanic sittingMechanic;
+    private final ExecutorService cachedExecutor;
+    {
+        this.cachedExecutor = Executors.newCachedThreadPool();
+    }
 
+    private SittingMechanic sittingMechanic;
+    private SleepingRegenMechanic sleepingRegenMechanic;
 
     /**
      * Default constructor
@@ -33,15 +41,18 @@ public class MechanicMngr extends AMngr {
      */
     public MechanicMngr(@NotNull RevokenPlugin plugin) {
         super(plugin);
+
+        this.sittingMechanic = new SittingMechanic(this.getPlugin());
+        this.sleepingRegenMechanic = new SleepingRegenMechanic(this.getPlugin());
     }
 
     @Override
     public void initialize() {
         ((CraftServer) getPlugin().getServer()).getServer().b(() -> {
-            Executors.newSingleThreadExecutor().submit(() -> {
+            this.cachedExecutor.submit(() -> {
                 // async tickables
                asyncTickables.forEach((id, tickable) -> {
-                   Executors.newSingleThreadExecutor().submit(() -> {
+                   this.cachedExecutor.submit(() -> {
                        try {
                            tickable.run();
                        } catch (Exception x) {
@@ -69,7 +80,7 @@ public class MechanicMngr extends AMngr {
         });
 
         {
-            this.sittingMechanic = new SittingMechanic(this.getPlugin());
+            this.sleepingRegenMechanic.initialize();
 
             Bukkit.getPluginManager().registerEvents(this.sittingMechanic, this.getPlugin());
             Bukkit.getCommandMap().register("revoken", new Command("sit") {
@@ -80,7 +91,7 @@ public class MechanicMngr extends AMngr {
                         return true;
 
                     Player player = (Player) sender;
-                    MechanicMngr.this.sittingMechanic.sitOnLocation(player.getLocation().add(new Vector(0, -2.5, 0)), player);
+                    MechanicMngr.this.sittingMechanic.sitOnLocation(player.getLocation().add(new Vector(0, -1.2, 0)), player);
                     return true;
                 }
             });
@@ -97,7 +108,7 @@ public class MechanicMngr extends AMngr {
             } else
                 log.warn("SittingMechanic tried to remove non-existing entity");
         });
-
+        this.sleepingRegenMechanic.terminate();
     }
 
     @Override
