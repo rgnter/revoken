@@ -19,10 +19,8 @@ public class ThirdPerson {
         EntityPlayer original = PktStatics.getNmsPlayer(player);
         EntityPlayer copy = PktStatics.createEntityPlayerCopy(original);
         copy.setLocation(bodyLocation.getX(), bodyLocation.getY(), bodyLocation.getZ(), bodyLocation.getYaw(), bodyLocation.getPitch());
-
         PacketPlayOutSpawnEntityLiving pkt = new PacketPlayOutSpawnEntityLiving(copy);
         original.playerConnection.sendPacket(pkt);
-
     }
 
 }

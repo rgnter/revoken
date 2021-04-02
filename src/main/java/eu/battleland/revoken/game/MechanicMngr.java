@@ -3,9 +3,12 @@ package eu.battleland.revoken.game;
 import eu.battleland.revoken.RevokenPlugin;
 import eu.battleland.revoken.abstracted.AMngr;
 import eu.battleland.revoken.diagnostics.timings.Timer;
-import eu.battleland.revoken.game.mechanics.SleepingRegenMechanic;
+import eu.battleland.revoken.game.mechanics.sexyborder.SexyBorder;
 import eu.battleland.revoken.game.special.SittingMechanic;
+import eu.battleland.revoken.statics.PktStatics;
 import lombok.extern.log4j.Log4j2;
+import net.minecraft.server.v1_16_R3.EntityPlayer;
+import net.minecraft.server.v1_16_R3.PacketPlayOutGameStateChange;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -14,10 +17,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j2(topic = "Revoken - MechanicMngr")
@@ -32,8 +35,7 @@ public class MechanicMngr extends AMngr {
         this.cachedExecutor = Executors.newCachedThreadPool();
     }
 
-    private SittingMechanic sittingMechanic;
-    private SleepingRegenMechanic sleepingRegenMechanic;
+    private final SittingMechanic sittingMechanic;
 
     /**
      * Default constructor
@@ -43,7 +45,7 @@ public class MechanicMngr extends AMngr {
         super(plugin);
 
         this.sittingMechanic = new SittingMechanic(this.getPlugin());
-        this.sleepingRegenMechanic = new SleepingRegenMechanic(this.getPlugin());
+        //this.sexyBorder = new SexyBorder(this.getPlugin());
     }
 
     @Override
@@ -69,7 +71,7 @@ public class MechanicMngr extends AMngr {
                 try {
                     tickable.run();
                     double tookMs = timer.stop().resultMilli();
-                    if(tookMs > 500)
+                    if(tookMs > 100)
                         log.warn("Ticking sync task #{}({}) took {}ms", id, tickable.getClass().getName(), tookMs);
 
                 } catch (Exception x) {
@@ -80,8 +82,6 @@ public class MechanicMngr extends AMngr {
         });
 
         {
-            this.sleepingRegenMechanic.initialize();
-
             Bukkit.getPluginManager().registerEvents(this.sittingMechanic, this.getPlugin());
             Bukkit.getCommandMap().register("revoken", new Command("sit") {
                 @Override
@@ -95,7 +95,48 @@ public class MechanicMngr extends AMngr {
                     return true;
                 }
             });
+
+            Bukkit.getCommandMap().register("revoken", new Command("ride") {
+                @Override
+                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args)
+                {
+                    if(!sender.hasPermission("revoken.ride"))
+                        return true;
+
+                    Player player = (Player) sender;
+                    var entity = Optional.ofNullable(player.getTargetEntity(10));
+                    entity.ifPresentOrElse((target) -> {
+                        target.addPassenger(player);
+
+                        player.sendMessage("§aride on!");
+                    }, () -> {
+                        player.sendMessage("§cfuck off");
+                    });
+
+                    return true;
+                }
+            });
+
+            Bukkit.getCommandMap().register("revoken", new Command("bugtest") {
+                @Override
+                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args)
+                {
+                    if(!sender.hasPermission("revoken.bugtest"))
+                        return true;
+
+                    Player player = (Player) sender;
+                    EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(player);
+
+                    if(args.length > 0) {
+                        float val = Float.parseFloat(args[0]);
+
+                        nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.h, val));
+                    }
+                    return true;
+                }
+            });
         }
+
 
     }
 
@@ -108,7 +149,8 @@ public class MechanicMngr extends AMngr {
             } else
                 log.warn("SittingMechanic tried to remove non-existing entity");
         });
-        this.sleepingRegenMechanic.terminate();
+
+
     }
 
     @Override

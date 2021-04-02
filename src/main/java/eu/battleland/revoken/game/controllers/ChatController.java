@@ -6,10 +6,10 @@ import eu.battleland.revoken.abstracted.AController;
 import eu.battleland.revoken.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.statics.PermissionStatics;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.server.v1_16_R3.PacketPlayOutNamedSoundEffect;
-import org.bukkit.*;
-import org.bukkit.craftbukkit.v1_16_R3.CraftSound;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -20,14 +20,10 @@ import org.bukkit.permissions.PermissionDefault;
 import org.jetbrains.annotations.NotNull;
 import xyz.rgnt.mth.tuples.Pair;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.bukkit.Bukkit.getOnlinePlayers;
 
@@ -49,10 +45,12 @@ public class ChatController extends AController implements Listener {
     private boolean mentionEnabled = true;
     private String mentionIndicator = "@";
     private String mentionColor = "&e";
-    private Sound mentionSound  = Sound.BLOCK_BELL_USE;
+    private Sound mentionSound = Sound.BLOCK_BELL_USE;
     private float mentionVolume = 1f;
-    private float mentionPitch  = 1f;
+    private float mentionPitch = 1f;
     private Permission mentionPermission = null;
+
+    private boolean hasChatManager = false;
 
 
     /**
@@ -74,6 +72,7 @@ public class ChatController extends AController implements Listener {
         loadSettings();
 
         Bukkit.getPluginManager().registerEvents(this, getInstance());
+
     }
 
     @Override
@@ -92,24 +91,33 @@ public class ChatController extends AController implements Listener {
         loadSettings();
     }
 
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent event) {
         Player sender = event.getPlayer();
 
-        // chat manager doesn't properly use event message, so we have to extract it from format with this hack
         String format = event.getFormat();
+        String message = "";
+
+        // chat manager applies group color only to format
+        // in order for us to get group color, we have to extract the message from format
         int chatSeparatorIndex = format.indexOf("►");
-        String message = format.substring(chatSeparatorIndex);
+        if (this.hasChatManager) {
+            message = format.substring(chatSeparatorIndex);
+        } else {
+            message = event.getMessage();
+        }
 
         // PERMISSION COLOR
         StringBuffer colorMod = new StringBuffer();
-
         this.permissionColors.forEach((permission, color) -> {
-            if(sender.hasPermission(permission)) {
+            if (sender.hasPermission(permission)) {
                 colorMod.append(color);
+                System.out.println("Using: " + permission);
             }
         });
         message = ChatColor.translateAlternateColorCodes('&', colorMod.toString()) + message;
+
         String lastColors = ChatColor.getLastColors(message);
 
         // MENTION
@@ -122,9 +130,10 @@ public class ChatController extends AController implements Listener {
                                         ChatColor.translateAlternateColorCodes('&', mentionColor + mentionIndicator + player.getName() + lastColors)
                                 );
 
-                       player.playSound(player.getLocation(), mentionSound, SoundCategory.PLAYERS, mentionVolume, mentionPitch);
+                        player.playSound(player.getLocation(), mentionSound, SoundCategory.PLAYERS, mentionVolume, mentionPitch);
                     }
                 }
+
         // EMOTES
         if (emotesEnabled)
             // check global emote permission
@@ -141,15 +150,23 @@ public class ChatController extends AController implements Listener {
                 }
 
 
-        var stripped = ChatColor.stripColor(message);
-        if(disableBlanks && stripped.isBlank() || stripped.isEmpty())
+        var stripped = ChatColor.stripColor(message).trim();
+        if (disableBlanks && (stripped.isBlank() || stripped.isEmpty()))
             event.setCancelled(true);
 
-        event.setFormat(format.substring(0, chatSeparatorIndex) + message);
+        if (hasChatManager)
+            event.setFormat(format.substring(0, chatSeparatorIndex) + message);
+        else
+            event.setMessage(message);
     }
 
     public void loadSettings() {
         var config = this.chatConfig.getData();
+
+        this.hasChatManager = Bukkit.getPluginManager().getPlugin("ChatManager") != null;
+        if (this.hasChatManager) {
+            log.info("Detected ChatManager.");
+        }
 
         this.disableBlanks = config.getBool("chat.disable-blank-messages", true);
 
@@ -193,7 +210,7 @@ public class ChatController extends AController implements Listener {
                 log.debug("Permission for mentions: " + this.mentionPermission.getName());
 
             this.mentionIndicator = config.getString("chat.mention.indicator", "@");
-            if(!config.getBool("chat.mention.color-based-on-chatcolor", false))
+            if (!config.getBool("chat.mention.color-based-on-chatcolor", false))
                 this.mentionColor = config.getString("chat.mention.color", "&a");
             else
                 this.mentionColor = "~+";
@@ -215,7 +232,7 @@ public class ChatController extends AController implements Listener {
         // permission color
         {
             var root = config.getSector("chat.permission-color");
-            if(root!=null) {
+            if (root != null) {
                 Set<String> entries = root.getKeys();
                 for (String entry : entries) {
                     String defaultColor = IridiumColorAPI.process(root.getString(entry + ".default-color", ""));

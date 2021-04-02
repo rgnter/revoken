@@ -1,0 +1,23 @@
+#
+#  ██████╗ ███████╗██╗   ██╗ ██████╗ ██╗  ██╗███████╗███╗   ██╗
+#  ██╔══██╗██╔════╝██║   ██║██╔═══██╗██║ ██╔╝██╔════╝████╗  ██║
+#  ██████╔╝█████╗  ██║   ██║██║   ██║█████╔╝ █████╗  ██╔██╗ ██║
+#  ██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔═██╗ ██╔══╝  ██║╚██╗██║
+#  ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝██║  ██╗███████╗██║ ╚████║
+#  ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝
+#
+# "ANSI Shadow" from http://patorjk.com/software/taag/
+# Version:    ${version}
+# Build time: ${timestamp}
+# --
+# Safeguard configuration
+#
+
+settings:
+  dissalow-pvp: true
+  disallow-pve: false
+
+
+messages:
+  player-under-safeguard: ""
+  you-are-under-safeguard: ""
