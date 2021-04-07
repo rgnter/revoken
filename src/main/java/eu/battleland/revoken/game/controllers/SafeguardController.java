@@ -35,8 +35,9 @@ public class SafeguardController extends AController {
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent event) {
         final Player damager, damagee;
-        if(!(event.getDamager() instanceof Player) || !(event.getEntity() instanceof Player))
+        if(!(event.getDamager() instanceof Player) && !(event.getEntity() instanceof Player))
             return;
+
         damager = (Player) event.getDamager();
         damagee = (Player) event.getEntity();
 

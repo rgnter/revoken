@@ -108,6 +108,7 @@ public class ChatController extends AController implements Listener {
             message = event.getMessage();
         }
 
+
         // PERMISSION COLOR
         StringBuffer colorMod = new StringBuffer();
         this.permissionColors.forEach((permission, color) -> {
@@ -124,6 +125,9 @@ public class ChatController extends AController implements Listener {
         if (mentionEnabled)
             if (mentionPermission == null || sender.hasPermission(mentionPermission))
                 for (Player player : getOnlinePlayers()) {
+                    if(!sender.canSee((player)))
+                        return;
+
                     if (message.matches("(?i).*" + mentionIndicator + player.getName() + "\\b.*")) {
                         message = message.replaceAll
                                 ("(?i)" + mentionIndicator + player.getName() + "\\b",
