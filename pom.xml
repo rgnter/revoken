@@ -44,6 +44,12 @@
             <artifactId>paper</artifactId>
             <scope>provided</scope>
             <version>1.16.5-R0.1-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.papermc</groupId>
+                    <artifactId>minecraft-server</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         
         <dependency>
@@ -84,6 +90,7 @@
             <artifactId>log4j-api</artifactId>
             <version>2.1</version>
         </dependency>
+
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>

