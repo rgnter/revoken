@@ -16,7 +16,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,10 +32,10 @@ public class MechanicMngr extends AMngr implements Listener {
     private final ConcurrentHashMap<Integer, Runnable> syncTickables = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Runnable> asyncTickables = new ConcurrentHashMap<>();
 
-    private final ExecutorService cachedExecutor;
+    private final ExecutorService threadPool;
 
     {
-        this.cachedExecutor = Executors.newCachedThreadPool();
+        this.threadPool = Executors.newCachedThreadPool();
     }
 
     private final SittingMechanic sittingMechanic;
@@ -58,19 +57,23 @@ public class MechanicMngr extends AMngr implements Listener {
         Bukkit.getPluginManager().registerEvents(this, getPlugin());
 
         ((CraftServer) getPlugin().getServer()).getServer().b(() -> {
-            this.cachedExecutor.submit(() -> {
-                // async tickables
-                asyncTickables.forEach((id, tickable) -> {
-                    this.cachedExecutor.submit(() -> {
-                        try {
-                            tickable.run();
-                        } catch (Exception x) {
-                            if (!this.getPlugin().isDebug())
-                                log.error("Caught exception while ticking async task #{}({})", id, tickable.getClass().getName(), x);
-                        }
+            try {
+                this.threadPool.submit(() -> {
+                    // async tickables
+                    asyncTickables.forEach((id, tickable) -> {
+                        this.threadPool.submit(() -> {
+                            try {
+                                tickable.run();
+                            } catch (Exception x) {
+                                if (!this.getPlugin().isDebug())
+                                    log.error("Caught exception while ticking async task #{}({})", id, tickable.getClass().getName(), x);
+                            }
+                        });
                     });
                 });
-            });
+            } catch (Exception ignored) {
+
+            }
 
             // sync tickables
             syncTickables.forEach((id, tickable) -> {
@@ -161,6 +164,8 @@ public class MechanicMngr extends AMngr implements Listener {
 
     @Override
     public void terminate() {
+        this.threadPool.shutdown();
+
         this.sittingMechanic.getEntites().forEach((entityUuid, data) -> {
             var entity = Bukkit.getEntity(entityUuid);
             if (entity != null) {

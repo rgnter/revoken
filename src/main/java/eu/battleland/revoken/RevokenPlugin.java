@@ -5,6 +5,8 @@ import eu.battleland.revoken.game.ControllerMngr;
 import eu.battleland.revoken.game.MechanicMngr;
 import eu.battleland.revoken.game.special.ThirdPerson;
 import eu.battleland.revoken.providers.storage.flatfile.StorageProvider;
+import eu.battleland.revoken.providers.storage.flatfile.data.FriendlyData;
+import eu.battleland.revoken.providers.storage.flatfile.store.AStore;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
@@ -17,10 +19,12 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Log4j2(topic = "Revoken")
 public class RevokenPlugin extends JavaPlugin {
@@ -28,6 +32,9 @@ public class RevokenPlugin extends JavaPlugin {
     @Getter
     @Setter
     private boolean debug = true;
+
+    @Getter
+    private @NotNull Optional<AStore> globalConfig = Optional.empty();
 
     @Getter
     private StorageProvider storageProvider;
@@ -45,6 +52,7 @@ public class RevokenPlugin extends JavaPlugin {
         log.info("Constructing Revoken plugin...");
         {
             this.storageProvider = new StorageProvider(this);
+            loadConfiguration();
 
             this.controllerMngr = new ControllerMngr(this);
             this.mechanicMngr = new MechanicMngr(this);
@@ -71,6 +79,16 @@ public class RevokenPlugin extends JavaPlugin {
                     if (args.length == 0)
                         return true;
                     if (args[0].equalsIgnoreCase("reload")) {
+                        globalConfig.ifPresentOrElse((config) -> {
+                            try {
+                                config.prepare();
+                            } catch (Exception e) {
+                                sender.sendMessage("§cFailed to reload global configuration.");
+                                log.error("Failed to reload global configuration", e);
+                            }
+                        }, () -> {
+                            loadConfiguration();
+                        });
                         controllerMngr.reload();
                         sender.sendMessage("§aReloaded.");
                     } else if (args[0].equalsIgnoreCase("debug")) {
@@ -127,4 +145,14 @@ public class RevokenPlugin extends JavaPlugin {
         }
         log.info("Terminating Revoken plugin in §e{}§rms", String.format("%.3f", timer.stop().resultMilli()));
     }
+
+    private void loadConfiguration() {
+        try {
+            if(this.globalConfig.isEmpty())
+                this.globalConfig = Optional.of(this.getStorageProvider().provideYaml("resources", "configs/_global.yaml", true));
+        } catch (Exception x) {
+            log.error("Failed to provide default config", x);
+        }
+    }
+
 }

@@ -2,8 +2,9 @@ package eu.battleland.revoken.game;
 
 import eu.battleland.revoken.RevokenPlugin;
 import eu.battleland.revoken.diagnostics.timings.Timer;
-import eu.battleland.revoken.game.controllers.ChatController;
-import eu.battleland.revoken.game.controllers.InterfaceController;
+import eu.battleland.revoken.game.controllers.report.ReportController;
+import eu.battleland.revoken.game.controllers.uxui.ChatController;
+import eu.battleland.revoken.game.controllers.uxui.InterfaceController;
 import eu.battleland.revoken.game.controllers.VoteController;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +18,9 @@ public class ControllerMngr {
     private @NotNull ChatController      chatController;
 
     private @NotNull VoteController      voteController;
+
+
+    private @NotNull ReportController reportController;
 
     /**
      * Default constructor
@@ -37,6 +41,7 @@ public class ControllerMngr {
             this.chatController      = new ChatController(this.plugin);
 
             this.voteController      = new VoteController(this.plugin);
+            this.reportController    = new ReportController(this.plugin);
         }
         {
             try {
@@ -55,6 +60,11 @@ public class ControllerMngr {
             } catch (Exception e) {
                 log.error("Failed to initialize VoteController", e);
             }
+            try {
+                this.reportController.initialize();
+            } catch (Exception e) {
+                log.error("Failed to initialize ReportController", e);
+            }
         }
         log.info("Constructed and Initialized Controllers in §e{}§rms", String.format("%.3f", timer.stop().resultMilli()));
 
@@ -68,6 +78,11 @@ public class ControllerMngr {
         Timer timer = Timer.timings().start();
         log.info("Terminating  Controllers");
         {
+            try {
+                this.reportController.terminate();
+            } catch (Exception e) {
+                log.error("Failed to terminate ReportController", e);
+            }
             try {
                 this.voteController.terminate();
             } catch (Exception e) {
@@ -92,6 +107,8 @@ public class ControllerMngr {
         this.interfaceController.reload();
         this.chatController.reload();
         this.voteController.reload();
+
+        this.reportController.reload();
     }
 
 }

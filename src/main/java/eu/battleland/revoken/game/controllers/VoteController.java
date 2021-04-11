@@ -81,7 +81,8 @@ public class VoteController extends AController {
         if(this.taskId != -1)
             Bukkit.getScheduler().cancelTask(this.taskId);
         this.taskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(getInstance(), () -> {
-            final StringBuilder voteInfoStr = new StringBuilder();
+            StringBuilder voteInfoStr = new StringBuilder();
+
             Bukkit.getOnlinePlayers().forEach(player -> {
                 var ccData = ApiConnector.getHttpApiResponse("https://czech-craft.eu/api/server/battleland-eu/player/" + player.getName() + "/next_vote/");
                 if(ccData == null || !ccData.has("next_vote"))
@@ -91,14 +92,15 @@ public class VoteController extends AController {
                 LocalDateTime nextVote = LocalDateTime.parse(nextVoteStr, this.ccDateFormat);
                 if(nextVote.isBefore(LocalDateTime.now()))
                 {
-                    voteInfoStr.append("§a").append(player.getName()).append("; ");
+                    voteInfoStr.append("§a").append(player.getName()).append(" ");
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', PlaceholderStatics.askPapiForPlaceholders(this.rawCcReminder, player)));
                 } else
-                    voteInfoStr.append("§c").append(player.getName()).append("; ");
+                    voteInfoStr.append("§c").append(player.getName()).append(" ");
 
             });
+
             Bukkit.getConsoleSender().sendMessage("Can vote: " + voteInfoStr);
-        }, this.updateTick, this.updateTick);
+        }, 40, this.updateTick);
 
     }
 
