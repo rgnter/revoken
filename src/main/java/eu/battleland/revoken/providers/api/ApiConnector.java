@@ -3,6 +3,7 @@ package eu.battleland.revoken.providers.api;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j2;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +41,10 @@ public class ApiConnector {
             log.error("IOP Exception: " + e, e);
             return null;
         }
+    }
+
+    public static @NotNull String getSkinHeadUrl(@NotNull Player player) {
+        return "https://minotar.net/avatar/" + player.getName();
     }
 
 }

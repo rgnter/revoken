@@ -1,23 +1,23 @@
 package eu.battleland.revoken.providers.api.discord;
 
+import lombok.Setter;
+
 import javax.net.ssl.HttpsURLConnection;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Class used to execute Discord Webhooks with low effort
  */
 public class DiscordWebhook {
 
-    private final String url;
+    @Setter
+    private String url;
+
     private String content;
     private String username;
     private String avatarUrl;
@@ -53,9 +53,14 @@ public class DiscordWebhook {
         this.embeds.add(embed);
     }
 
+    public void addEmbed(EmbedObject ... embed) {
+        this.embeds.addAll(Arrays.asList(embed));
+    }
+
     public void clearEmbeds() {
         this.embeds.clear();
     }
+
 
     public void execute() throws IOException {
         if (this.content == null && this.embeds.isEmpty()) {
