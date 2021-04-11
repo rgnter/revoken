@@ -1,0 +1,16 @@
+name: revoken
+version: ${version}
+main: eu.battleland.revoken.serverside.RevokenPlugin
+api-version: 1.16
+authors: ${authors}
+softdepend:
+  - PlaceholderAPI
+
+website: https://battleland.eu
+
+permissions:
+  revoken:
+    sit:
+      default: true
+    admin:
+      default: OP

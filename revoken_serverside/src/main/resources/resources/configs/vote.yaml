@@ -1,0 +1,27 @@
+#
+#  ██████╗ ███████╗██╗   ██╗ ██████╗ ██╗  ██╗███████╗███╗   ██╗
+#  ██╔══██╗██╔════╝██║   ██║██╔═══██╗██║ ██╔╝██╔════╝████╗  ██║
+#  ██████╔╝█████╗  ██║   ██║██║   ██║█████╔╝ █████╗  ██╔██╗ ██║
+#  ██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔═██╗ ██╔══╝  ██║╚██╗██║
+#  ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝██║  ██╗███████╗██║ ╚████║
+#  ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝
+#
+# "ANSI Shadow" from http://patorjk.com/software/taag/
+# Version:    ${version}
+# Build time: ${timestamp}
+# --
+# Vote configuration
+#
+vote-reminder:
+  enabled: true
+  vote-again-czechcraft:
+    - " "
+    - "&e&lVote &8● &bPoď znova zahlasovať za náš server!"
+    - " "
+  vote-again-craftlist:
+    - " "
+    - "&e&lVote &8● &bPoď znova zahlasovať za náš server!"
+    - " "
+  # In seconds
+  update-time: 300
+  remind-count: 3

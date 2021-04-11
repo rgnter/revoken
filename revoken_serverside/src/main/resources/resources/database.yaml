@@ -1,0 +1,24 @@
+#
+#  ██████╗ ███████╗██╗   ██╗ ██████╗ ██╗  ██╗███████╗███╗   ██╗
+#  ██╔══██╗██╔════╝██║   ██║██╔═══██╗██║ ██╔╝██╔════╝████╗  ██║
+#  ██████╔╝█████╗  ██║   ██║██║   ██║█████╔╝ █████╗  ██╔██╗ ██║
+#  ██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔═██╗ ██╔══╝  ██║╚██╗██║
+#  ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝██║  ██╗███████╗██║ ╚████║
+#  ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝
+#
+# "ANSI Shadow" from http://patorjk.com/software/taag/
+# Version:    ${version}
+# Build time: ${timestamp}
+# --
+# Database configuration
+#
+databse-type: sqlite
+database:
+  mysql:
+    username: "root"
+    password: ""
+    host-addr: "localhost"
+    host-port: 3306
+    database-name: "battleland"
+  sqlite:
+    path: "database.db"

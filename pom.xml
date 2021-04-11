@@ -4,152 +4,26 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <name>revoken</name>
     <groupId>eu.battleland</groupId>
-    <artifactId>revoken</artifactId>
+    <artifactId>revoken-parent</artifactId>
     <packaging>pom</packaging>
     <version>1.0-dev</version>
+
     <modules>
-        <module>untitled</module>
+        <module>revoken_common</module>
+        <module>revoken_proxyside</module>
+        <module>revoken_serverside</module>
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.11</maven.compiler.source>
-        <maven.compiler.target>1.11</maven.compiler.target>
-
         <authors>[rgnt.xyz]</authors>
+
+        <maven.compiler.release>11</maven.compiler.release>
 
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
     </properties>
-
-    <repositories>
-        <repository>
-            <id>papermc</id>
-            <url>https://papermc.io/repo/repository/maven-public/</url>
-        </repository>
-        <repository>
-            <id>placeholderapi</id>
-            <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
-        </repository>
-        <repository>
-            <id>savagelabs</id>
-            <url>https://nexus.savagelabs.net/repository/maven-releases/</url>
-        </repository>
-        <repository>
-            <id>sonatype-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </repository>
-    </repositories>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.destroystokyo.paper</groupId>
-            <artifactId>paper</artifactId>
-            <scope>provided</scope>
-            <version>1.16.5-R0.1-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.papermc</groupId>
-                    <artifactId>minecraft-server</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        
-        <dependency>
-            <groupId>me.clip</groupId>
-            <artifactId>placeholderapi</artifactId>
-            <version>2.9.2</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>3.4.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.16</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>xyz.rgnt</groupId>
-            <artifactId>mth</artifactId>
-            <version>1.4-release</version>
-        </dependency>
-        <dependency>
-            <groupId>com.iridium</groupId>
-            <artifactId>IridiumColorAPI</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>16.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.1</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <artifactSet>
-                                <includes>
-                                </includes>
-                                <excludes>
-                                    <artifact>org.jetbrains</artifact>
-                                </excludes>
-                            </artifactSet>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/**</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                </configuration>
-            </plugin>
-        </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-    </build>
 
 </project>
