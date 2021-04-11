@@ -13,6 +13,9 @@
     <name>revoken common</name>
     <packaging>jar</packaging>
 
+    <properties>
+        <maven.compiler.release>11</maven.compiler.release>
+    </properties>
 
     <repositories>
         <repository>
