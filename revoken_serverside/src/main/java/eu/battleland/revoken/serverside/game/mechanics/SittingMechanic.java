@@ -1,7 +1,10 @@
 package eu.battleland.revoken.serverside.game.mechanics;
 
+import eu.battleland.common.Revoken;
+import eu.battleland.common.abstracted.AMechanic;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -9,6 +12,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.type.Stairs;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -26,15 +31,52 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
-public class SittingMechanic implements Listener {
+@Log4j2(topic = "Sitting Mechanic")
+public class SittingMechanic  extends AMechanic<RevokenPlugin> implements Listener {
 
-    private RevokenPlugin plugin;
+
     @Getter
     private TreeMap<UUID, Pair<UUID, Location>> entites = new TreeMap<>();
 
-    public SittingMechanic(RevokenPlugin plugin) {
-        this.plugin = plugin;
+    public SittingMechanic(@NotNull Revoken<RevokenPlugin> plugin) {
+        super(plugin);
     }
+
+    @Override
+    public void initialize() throws Exception {
+        Bukkit.getPluginManager().registerEvents(this, this.getPlugin().instance());
+
+        Bukkit.getCommandMap().register("revoken", new Command("sit") {
+            @Override
+            public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
+                if (!sender.hasPermission("revoken.sit"))
+                    return true;
+
+                Player player = (Player) sender;
+                sitOnLocation(player.getLocation().add(new Vector(0, -1.2, 0)), player);
+
+                return true;
+            }
+        });
+
+    }
+
+    @Override
+    public void terminate() {
+        getEntites().forEach((entityUuid, data) -> {
+            var entity = Bukkit.getEntity(entityUuid);
+            if (entity != null) {
+                entity.remove();
+            } else
+                log.warn("SittingMechanic tried to remove non-existing entity");
+        });
+    }
+
+    @Override
+    public void reload() {
+
+    }
+
 
     @EventHandler
     public void onClick(PlayerInteractEvent e) {
@@ -65,7 +107,7 @@ public class SittingMechanic implements Listener {
         Executors.newSingleThreadExecutor().submit(() -> {
             this.entites.forEach((entityUuid, sitData) -> {
                 if(sitData.getSecond().equals(location))
-                    Bukkit.getScheduler().runTask(plugin, () -> {
+                    Bukkit.getScheduler().runTask(getPlugin().instance(), () -> {
                         var entity = Bukkit.getEntity(entityUuid);
                         if(entity != null)
                             entity.remove();

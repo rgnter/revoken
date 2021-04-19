@@ -66,6 +66,11 @@
             <version>2.9.2</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>xyz.rgnt</groupId>
+            <artifactId>mth</artifactId>
+            <version>1.4-release</version>
+        </dependency>
 
         <dependency>
             <groupId>com.zaxxer</groupId>
@@ -76,17 +81,26 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.16</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
             <version>16.0.1</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.iridium</groupId>
             <artifactId>IridiumColorAPI</artifactId>
             <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bspfsystems</groupId>
+            <artifactId>yamlconfiguration</artifactId>
+            <version>1.0.1</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
@@ -95,7 +109,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.2.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -103,13 +117,20 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <artifactSet>
-                                <includes>
-                                </includes>
-                                <excludes>
-                                    <exclude>org.jetbrains</exclude>
-                                </excludes>
-                            </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.bspfsystems.yamlconfiguration.configuration</pattern>
+                                    <shadedPattern>org.bukkit.configuration</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.bspfsystems.yamlconfiguration.file</pattern>
+                                    <shadedPattern>org.bukkit.configuration.file</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.bspfsystems.yamlconfiguration.serialization</pattern>
+                                    <shadedPattern>org.bukkit.configuration.serialization</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>

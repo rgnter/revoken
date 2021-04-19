@@ -22,8 +22,8 @@ chat:
     # Indicates that emote key is following
     indicator: "\\"
     emotes:
-      what:
-        key: "what"
+      why:
+        key: "why"
         emote: "( •_•)"
       ohyeah:
         key: "ohyeah"
@@ -43,16 +43,56 @@ chat:
         key: "overlord"
         emote: "&f&kEEE &eOverlord &f&kEEE"
         permission: "regna.admin"
+      whytho:
+        key: "whytho"
+        emote: "(＞﹏＜)"
+      sus:
+        key: "sus"
+        emote: "( ͡─ ͜ʖ ͡─)"
+      idc:
+        key: "idc"
+        emote: "¯\\_(ツ)_/¯"
+      hi:
+        key: "hi"
+        emote: "\\(•◡•)/"
+      gib:
+        key: "gib"
+        emote: "༼つ◕_◕༽つ"
+      smirk:
+        key: "smirk"
+        emote: "(¬‿¬)"
+      stare:
+        key: "stare"
+        emote: "ಠ ᴗ ಠ"
+      kiss:
+        key: "kiss"
+        emote: "(づ￣ ³￣)づ"
+      what:
+        key: "what"
+        emote: "⚆ _ ⚆"
+      kyticka:
+        key: "kyticka"
+        emote: "(◕‿◕✿)"
+      joy:
+        key: "joy"
+        emote: "＼(^o^)／"
+      srsly:
+        key: "srsly"
+        emote: "(ㆆ_ㆆ)"
+      bear:
+        key: "bear"
+        emote: "ʕ•ᴥ•ʔ"
+      whatwhy:
+        key: "whatwhy"
+        emote: "◉_◉"
   mention:
     permission: ""
     enabled: true
     indicator: ""
-    color: "&e"
-    color-based-on-chatcolor: true
+    color: "&o"
     sound:
       name: "BLOCK_BELL_USE"
       volume: 1
       pitch: 1
-    messages:
-      somebody-mentioned-you: ""
   permission-color: {}
+

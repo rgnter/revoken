@@ -34,10 +34,6 @@ public class SexyBorder extends AMechanic<RevokenPlugin> implements Listener {
 
     }
 
-    @Override
-    public void tick() {
-
-    }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {

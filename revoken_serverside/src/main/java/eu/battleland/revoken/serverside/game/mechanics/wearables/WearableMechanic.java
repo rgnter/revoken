@@ -5,22 +5,23 @@ import eu.battleland.common.abstracted.AMechanic;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.revoken.serverside.game.mechanics.wearables.model.Wearable;
 import eu.battleland.revoken.serverside.statics.PktStatics;
+
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+
 import org.jetbrains.annotations.NotNull;
 import xyz.rgnt.mth.tuples.Triple;
 
@@ -60,7 +61,6 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
             log.error("Failed to instance class ARMOR_STAND for Wearable: " + wearable.getIdentifier() + ", Player: " + player.getName());
             return false;
         }
-
         hideEntities(wearableEntity);
 
         wearableEntity.setCustomName(IChatBaseComponent.ChatSerializer.b("wearable_" + wearable.getIdentifier()));
@@ -71,7 +71,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
         this.wardrobe.compute(player.getUniqueId(), (uuid, data) -> {
             if (data != null)
-                clotheOneselfOff( player);
+                clotheOneselfOff(player);
 
             wearableEntity.startRiding(nmsPlayer);
             worldServer.addEntity(wearableEntity);
@@ -84,7 +84,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
     /**
      * Rips and tears down the finest silk the player is surrounded with.
      *
-     * @param player   Player   Object
+     * @param player Player   Object
      * @return boolean result
      */
     public boolean clotheOneselfOff(@NotNull Player player) {
@@ -122,7 +122,6 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
     @Override
     public void initialize() throws Exception {
-
         Bukkit.getCommandMap().register("revoken", new Command("test") {
             @Override
             public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
@@ -141,10 +140,12 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
     }
 
     @Override
-    public void terminate() {}
+    public void terminate() {
+    }
 
     @Override
-    public void reload() {}
+    public void reload() {
+    }
 
 
     @Override
@@ -161,6 +162,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
     public void onJoin(PlayerJoinEvent event) {
         // load wearable from registry from persistent player storage
     }
+
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         clotheOneselfOff(event.getPlayer());

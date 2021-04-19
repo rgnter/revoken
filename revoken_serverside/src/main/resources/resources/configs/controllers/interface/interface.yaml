@@ -14,16 +14,16 @@
 #
 first-join-title:
   enabled: true
-  title: "<GRADIENT:ff5900>Vitaj</GRADIENT:ffe700> &7%player_name% <GRADIENT:ff5900>na BattleLand.eu</GRADIENT:ffe700> "
-  subtitle: ""
+  title: "<GRADIENT:ff5900>Vitaj</GRADIENT:ffe700> &7%player_name%"
+  subtitle: "<GRADIENT:ffe700>Na serveri BattleLand.eu</GRADIENT:ffe700> "
   times:
     fade-in: 10
-    stay: 30
+    stay: 20
     fade-out: 10
 join-title:
   enabled: false
-  title: "aaaaaaaaaaaahoj pica"
-  subtitle: ""
+  title: "<GRADIENT:ff5900>Vitaj</GRADIENT:ffe700> &7%player_name%"
+  subtitle: "<GRADIENT:ffe700>Na serveri BattleLand.eu</GRADIENT:ffe700> "
   times:
     fade-in: 10
     stay: 30

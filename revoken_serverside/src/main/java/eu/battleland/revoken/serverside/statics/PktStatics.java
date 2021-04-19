@@ -85,16 +85,17 @@ public class PktStatics {
 
     /**
      * Creates particle packet
-     * @param particle         Particle type from net.minecraft.server.v1_16_R1.Particles
-     * @param overrideLimiter  Override limiter
-     * @param x                World pos X
-     * @param y                World pos Y
-     * @param z                World pos Z
-     * @param offsetX          Offset of X
-     * @param offsetY          Offset of Y
-     * @param offsetZ          Offset of Z
-     * @param speed            Speed of particle
-     * @param count            Count of particles
+     *
+     * @param particle        Particle type from net.minecraft.server.v1_16_R1.Particles
+     * @param overrideLimiter Override limiter
+     * @param x               World pos X
+     * @param y               World pos Y
+     * @param z               World pos Z
+     * @param offsetX         Offset of X
+     * @param offsetY         Offset of Y
+     * @param offsetZ         Offset of Z
+     * @param speed           Speed of particle
+     * @param count           Count of particles
      * @return packet
      */
     public static PacketPlayOutWorldParticles makeParticlePacket(@NotNull ParticleType particle, boolean overrideLimiter, double x, double y, double z, float offsetX, float offsetY, float offsetZ, float speed, int count) {
@@ -103,12 +104,13 @@ public class PktStatics {
 
     /**
      * Creates particle packet
-     * @param particle         Particle type from net.minecraft.server.v1_16_R1.Particles
-     * @param overrideLimiter  Override limiter
-     * @param loc              World pos vector
-     * @param offset           Offset vector
-     * @param speed            Speed of particle
-     * @param count            Count of particles
+     *
+     * @param particle        Particle type from net.minecraft.server.v1_16_R1.Particles
+     * @param overrideLimiter Override limiter
+     * @param loc             World pos vector
+     * @param offset          Offset vector
+     * @param speed           Speed of particle
+     * @param count           Count of particles
      * @return packet
      */
     public static PacketPlayOutWorldParticles makeParticlePacket(@NotNull ParticleType particle, boolean overrideLimiter, Vector loc, @NotNull Vector offset, float speed, int count) {
@@ -126,6 +128,22 @@ public class PktStatics {
     }
 
     /**
+     * @param player Bukkit player
+     * @return NMS World
+     */
+    public static @NotNull WorldServer getNmsWorldServer(@NotNull Player player) {
+        return getNmsWorldServer(player.getWorld());
+    }
+
+    /**
+     * @param player Bukkit player
+     * @return NMS World
+     */
+    public static @NotNull BlockPosition getBlockLocation(@NotNull Player player) {
+        return new BlockPosition(CraftVector.toNMS(player.getLocation().toVector()));
+    }
+
+    /**
      * @return Server
      */
     public static MinecraftServer getNmsServer() {
@@ -137,24 +155,24 @@ public class PktStatics {
     }
 
     /**
-     * @param player Player
+     * @param player       Player
      * @param playerToHide Player that will be hidden to player.
      */
     public static void untrackPlayerFor(@NotNull EntityPlayer player, @NotNull EntityPlayer playerToHide) {
-        PlayerChunkMap playerChunkMap = ((WorldServer)player.world).getChunkProvider().playerChunkMap;
+        PlayerChunkMap playerChunkMap = ((WorldServer) player.world).getChunkProvider().playerChunkMap;
         PlayerChunkMap.EntityTracker tracker = playerChunkMap.trackedEntities.get(player.getId());
-        if(tracker != null)
+        if (tracker != null)
             tracker.clear(playerToHide);
     }
 
     /**
-     * @param player Player
+     * @param player       Player
      * @param playerToShow Player that will be shown to player.
      */
     public static void trackPlayerFor(@NotNull EntityPlayer player, @NotNull EntityPlayer playerToShow) {
-        PlayerChunkMap playerChunkMap = ((WorldServer)player.world).getChunkProvider().playerChunkMap;
+        PlayerChunkMap playerChunkMap = ((WorldServer) player.world).getChunkProvider().playerChunkMap;
         PlayerChunkMap.EntityTracker tracker = playerChunkMap.trackedEntities.get(player.getId());
-        if(tracker != null)
+        if (tracker != null)
             tracker.updatePlayer(playerToShow);
     }
 
@@ -165,5 +183,13 @@ public class PktStatics {
         cpy.a(original.getMainHand());
 
         return cpy;
+    }
+
+    public static PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook relMoveLook(int id, @NotNull EntityPlayer player) {
+        return new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(id,
+                (short)((player.locX() * 32 - player.lastX * 32) * 128),
+                (short)((player.locY() * 32 - player.lastY * 32) * 128),
+                (short)((player.locZ() * 32 - player.lastZ * 32) * 128),
+                (byte)((int)(player.yaw * 256.0F / 360.0F)), (byte)0, player.isOnGround());
     }
 }

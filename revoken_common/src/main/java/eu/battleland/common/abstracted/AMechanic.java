@@ -45,5 +45,10 @@ public abstract class AMechanic<T> implements IComponent {
     /**
      * Called on tick
      */
-    public abstract void tick();
+    public void tick() { }
+
+    /**
+     * Called on tick (Running in another thread)
+     */
+    public void asynctick() {}
 }

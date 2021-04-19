@@ -1,5 +1,6 @@
 package eu.battleland.revoken.serverside.game.controllers.report;
 
+import eu.battleland.common.Revoken;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.common.abstracted.AController;
 import eu.battleland.common.providers.api.ApiConnector;
@@ -44,7 +45,7 @@ public class ReportController extends AController<RevokenPlugin> {
     private final Map<UUID, Pair<Long, Long>> playerLastReport = new HashMap<>();
 
 
-    public ReportController(@NotNull RevokenPlugin plugin) {
+    public ReportController(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
     }
 
@@ -55,7 +56,7 @@ public class ReportController extends AController<RevokenPlugin> {
         this.threadPool = Executors.newCachedThreadPool();
         reload();
 
-        Bukkit.getCommandMap().register("eu/battleland/revoken", new Command("bugreport", "Used to report a bug", "/bugreport <description>", Arrays.asList("reportbug", "bug", "reportproblem", "problemreport", "problem")) {
+        Bukkit.getCommandMap().register("revoken", new Command("bugreport", "Used to report a bug", "/bugreport <description>", Arrays.asList("reportbug", "bug", "reportproblem", "problemreport", "problem")) {
             @Override
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] args) {
                 if(!commandSender.hasPermission("revoken.report"))
@@ -185,7 +186,7 @@ public class ReportController extends AController<RevokenPlugin> {
     @Override
     public void reload() {
         getPlugin().instance().getGlobalConfig().ifPresent((config) -> {
-            this.webhookURL = config.getData().getString("discord-webhook.bugreport-webhook", "");
+            this.webhookURL = config.getData().getString("discord-webhook.webhook", "");
         });
         if(webhookURL == null || webhookURL.isEmpty())
             log.warn("Webhook for Discord not provided from global config.");

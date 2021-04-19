@@ -5,10 +5,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AMngr<T> implements IComponent {
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+public abstract class AMngr<T, X extends IComponent> implements IComponent {
 
     @Getter(AccessLevel.PROTECTED)
     private final Revoken<T> plugin;
+
+    @Getter
+    private final ConcurrentHashMap<Class<X>, X> registeredComponents = new ConcurrentHashMap<>();
 
     /**
      * Default constructor for Manager
@@ -31,6 +39,30 @@ public abstract class AMngr<T> implements IComponent {
      * Called upon reload request
      */
     public abstract void reload();
+
+
+    public void callForComponents(@NotNull BiConsumer<Class<X>, X> call) {
+        this.registeredComponents.forEach(call);
+    }
+
+    public void registerComponents(@NotNull X ... components) {
+        for (X component : components) {
+            registerComponent(component);
+        }
+    }
+
+
+    public void registerComponent(@NotNull X component) {
+        this.registeredComponents.put((Class<X>) component.getClass(), component);
+    }
+
+    public void unregisterComponent(@NotNull X component) {
+        this.registeredComponents.remove((Class<X>) component.getClass());
+    }
+
+    public X obtainComponent(@NotNull Class<X> clazz) {
+        return this.registeredComponents.get(clazz);
+    }
 
 
 }

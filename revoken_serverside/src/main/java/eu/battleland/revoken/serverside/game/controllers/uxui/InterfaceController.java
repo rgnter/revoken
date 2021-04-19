@@ -2,6 +2,7 @@ package eu.battleland.revoken.serverside.game.controllers.uxui;
 
 import com.destroystokyo.paper.Title;
 import com.iridium.iridiumcolorapi.IridiumColorAPI;
+import eu.battleland.common.Revoken;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.common.abstracted.AController;
 import eu.battleland.common.providers.storage.flatfile.store.AStore;
@@ -30,14 +31,14 @@ public class InterfaceController extends AController<RevokenPlugin> implements L
     private String joinSubtitleText;
     private Title.Builder joinTitle;
 
-    public InterfaceController(@NotNull RevokenPlugin plugin) {
+    public InterfaceController(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
     }
 
     @Override
     public void initialize() throws Exception {
         try {
-            this.config = getPlugin().instance().getStorageProvider().provideYaml("resources", "configs/interface.yaml", true);
+            this.config = getPlugin().instance().getStorageProvider().provideYaml("resources", "configs/controllers/interface/interface.yaml", true);
         } catch (Exception x) {
             log.error("Failed to provide config to InterfaceController", x);
         }

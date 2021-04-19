@@ -1,5 +1,6 @@
 package eu.battleland.revoken.serverside.game.controllers;
 
+import eu.battleland.common.Revoken;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.common.abstracted.AController;
 import org.bukkit.Bukkit;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class SafeguardController extends AController<RevokenPlugin> {
 
-    public SafeguardController(@NotNull RevokenPlugin plugin) {
+    public SafeguardController(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
     }
 

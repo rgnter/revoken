@@ -27,7 +27,7 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
 
     @Getter
     @Setter
-    private boolean debug = true;
+    private boolean debug = false;
 
     @Getter
     private @NotNull Optional<AStore> globalConfig = Optional.empty();
@@ -66,7 +66,7 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
             this.controllerMngr.initialize();
             this.mechanicMngr.initialize();
 
-            Bukkit.getServer().getCommandMap().register("eu/battleland/revoken", new Command("eu/battleland/revoken") {
+            Bukkit.getServer().getCommandMap().register("revoken", new Command("revoken") {
                 @Override
                 public boolean execute(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
                     if (!sender.hasPermission("revoken.admin"))
@@ -86,10 +86,10 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
                             loadConfiguration();
                         });
                         controllerMngr.reload();
+                        mechanicMngr.reload();
                         sender.sendMessage("§aReloaded.");
                     } else if (args[0].equalsIgnoreCase("debug")) {
-                        debug = !debug;
-                        sender.sendMessage(debug ? "§aDebug is now enabled" : "§cDebug is now disabled");
+                        sender.sendMessage((debug = !debug) ? "§aDebug is now enabled" : "§cDebug is now disabled");
                     } else {
                         sender.sendMessage("§cI have no idea what you are up to, but I can't judge. rtrd.");
                     }
@@ -106,22 +106,6 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
                         return Arrays.asList("reload", "debug");
 
                     return Collections.emptyList();
-                }
-            });
-
-            Bukkit.getServer().getCommandMap().register("eu/battleland/revoken", new Command("test") {
-                @Override
-                public boolean execute(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
-                    if (!sender.hasPermission("revoken.test"))
-                        return true;
-
-                    Player player = (Player) sender;
-                    ThirdPerson thirdPerson = new ThirdPerson();
-                    thirdPerson.spectateLocation(player, player.getLocation(), player.getLocation());
-
-
-                    sender.sendMessage("§atest");
-                    return true;
                 }
             });
         }
@@ -145,7 +129,7 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
     private void loadConfiguration() {
         try {
             if(this.globalConfig.isEmpty())
-                this.globalConfig = Optional.of(this.getStorageProvider().provideYaml("resources", "configs/_global.yaml", true));
+                this.globalConfig = Optional.of(this.getStorageProvider().provideYaml("resources", "configs/plugin.yaml", true));
         } catch (Exception x) {
             log.error("Failed to provide default config", x);
         }

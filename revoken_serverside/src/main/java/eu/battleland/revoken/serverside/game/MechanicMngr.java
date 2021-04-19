@@ -1,13 +1,15 @@
 package eu.battleland.revoken.serverside.game;
 
+import eu.battleland.common.abstracted.AController;
+import eu.battleland.common.abstracted.AMechanic;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.common.abstracted.AMngr;
 import eu.battleland.common.diagnostics.timings.Timer;
 import eu.battleland.revoken.serverside.game.mechanics.SittingMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.wearables.WearableMechanic;
 import eu.battleland.revoken.serverside.statics.PktStatics;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
-import net.minecraft.server.v1_16_R3.PacketPlayOutGameStateChange;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -26,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Log4j2(topic = "Revoken - MechanicMngr")
-public class MechanicMngr extends AMngr<RevokenPlugin> implements Listener {
+public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>> implements Listener {
 
     private final AtomicInteger lastTickableId = new AtomicInteger(0);
     private final ConcurrentHashMap<Integer, Runnable> syncTickables = new ConcurrentHashMap<>();
@@ -38,7 +40,6 @@ public class MechanicMngr extends AMngr<RevokenPlugin> implements Listener {
         this.threadPool = Executors.newCachedThreadPool();
     }
 
-    private final SittingMechanic sittingMechanic;
 
     /**
      * Default constructor
@@ -47,40 +48,51 @@ public class MechanicMngr extends AMngr<RevokenPlugin> implements Listener {
      */
     public MechanicMngr(@NotNull RevokenPlugin plugin) {
         super(plugin);
-
-        this.sittingMechanic = new SittingMechanic(this.getPlugin().instance());
-        //this.sexyBorder = new SexyBorder(this.getPlugin());
     }
 
     @Override
     public void initialize() {
-        Bukkit.getPluginManager().registerEvents(this, getPlugin().instance());
+        {
+            Timer timer = Timer.timings().start();
+            registerComponents(new SittingMechanic(getPlugin()), new WearableMechanic(getPlugin()));
+
+            log.info("Constructing and Initializing Mechanics");
+            callForComponents((clazz, instance) -> {
+                try {
+                    instance.initialize();
+
+                    if (instance.isTickable())
+                        registerSyncTickable(instance::tick);
+                    if (instance.isTickableAsync())
+                        registerAsyncTickable(instance::asynctick);
+
+                    log.debug("Initialized mechanic '§e{}§r'", clazz.getSimpleName());
+                } catch (Exception x) {
+                    log.error("Failed to initialize mechanic '{}'", clazz.getSimpleName(), x);
+                }
+            });
+            log.info("Constructed and Initialized Mechanics in §e{}§rms", String.format("%.3f", timer.stop().resultMilli()));
+        }
 
         ((CraftServer) getPlugin().instance().getServer()).getServer().b(() -> {
-            try {
+            // async tickables
+            asyncTickables.forEach((id, tickable) -> {
                 this.threadPool.submit(() -> {
-                    // async tickables
-                    asyncTickables.forEach((id, tickable) -> {
-                        this.threadPool.submit(() -> {
-                            try {
-                                tickable.run();
-                            } catch (Exception x) {
-                                if (!this.getPlugin().instance().isDebug())
-                                    log.error("Caught exception while ticking async task #{}({})", id, tickable.getClass().getName(), x);
-                            }
-                        });
-                    });
+                    try {
+                        tickable.run();
+                    } catch (Exception x) {
+                        if (!this.getPlugin().instance().isDebug())
+                            log.error("Caught exception while ticking async task #{}({})", id, tickable.getClass().getName(), x);
+                    }
                 });
-            } catch (Exception ignored) {
-
-            }
+            });
 
             // sync tickables
             syncTickables.forEach((id, tickable) -> {
-                var timer = Timer.timings().start();
+                var tickTimer = Timer.timings().start();
                 try {
                     tickable.run();
-                    double tookMs = timer.stop().resultMilli();
+                    double tookMs = tickTimer.stop().resultMilli();
                     if (tookMs > 100)
                         log.warn("Ticking sync task #{}({}) took {}ms", id, tickable.getClass().getName(), tookMs);
 
@@ -89,23 +101,12 @@ public class MechanicMngr extends AMngr<RevokenPlugin> implements Listener {
                         log.error("Caught exception while ticking sync task #{}({})", id, tickable.getClass().getName(), x);
                 }
             });
+
         });
 
+
         {
-            Bukkit.getPluginManager().registerEvents(this.sittingMechanic, this.getPlugin().instance());
-            Bukkit.getCommandMap().register("eu/battleland/revoken", new Command("sit") {
-                @Override
-                public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
-                    if (!sender.hasPermission("revoken.sit"))
-                        return true;
-
-                    Player player = (Player) sender;
-                    MechanicMngr.this.sittingMechanic.sitOnLocation(player.getLocation().add(new Vector(0, -1.2, 0)), player);
-                    return true;
-                }
-            });
-
-            Bukkit.getCommandMap().register("eu/battleland/revoken", new Command("ride") {
+            Bukkit.getCommandMap().register("revoken", new Command("ride") {
                 @Override
                 public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
                     if (!sender.hasPermission("revoken.ride"))
@@ -125,26 +126,26 @@ public class MechanicMngr extends AMngr<RevokenPlugin> implements Listener {
                 }
             });
 
-            Bukkit.getCommandMap().register("eu/battleland/revoken", new Command("lagclient") {
+            Bukkit.getCommandMap().register("revoken", new Command("lagclient") {
                 @Override
                 public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
                     if (!sender.hasPermission("revoken.admin"))
                         return true;
 
-                    if(args.length == 0) {
+                    if (args.length == 0) {
                         sender.sendMessage("§cMissing player argument");
                         return true;
                     }
                     String playerName = args[0];
                     final Player bukkitPlayer = Bukkit.getPlayer(playerName);
-                    if(bukkitPlayer == null) {
+                    if (bukkitPlayer == null) {
                         sender.sendMessage("§cInvalid player reference");
                         return true;
                     }
                     final EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(bukkitPlayer);
                     Bukkit.getScheduler().runTaskAsynchronously(getPlugin().instance(), () -> {
                         for (int i = 0; i < 10000; i++) {
-                            if(!bukkitPlayer.isOnline())
+                            if (!bukkitPlayer.isOnline())
                                 nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.h, i));
                             else {
                                 sender.sendMessage("&aBroke him.");
@@ -164,22 +165,34 @@ public class MechanicMngr extends AMngr<RevokenPlugin> implements Listener {
 
     @Override
     public void terminate() {
-        this.threadPool.shutdown();
-
-        this.sittingMechanic.getEntites().forEach((entityUuid, data) -> {
-            var entity = Bukkit.getEntity(entityUuid);
-            if (entity != null) {
-                entity.remove();
-            } else
-                log.warn("SittingMechanic tried to remove non-existing entity");
+        Timer timer = Timer.timings().start();
+        log.info("Terminating Mechanics");
+        callForComponents((clazz, instance) -> {
+            try {
+                instance.terminate();
+                log.debug("Terminated mechanic '§e{}§r'", clazz.getSimpleName());
+            } catch (Exception x) {
+                log.error("Failed to terminate mechanic '{}'", clazz.getSimpleName(), x);
+            }
         });
+        log.info("Constructed and Initialized Mechanics in §e{}§rms", String.format("%.3f", timer.stop().resultMilli()));
 
-
+        this.threadPool.shutdown();
     }
 
     @Override
     public void reload() {
+        Timer timer = Timer.timings().start();
 
+        log.info("Reloading Mechanics");
+        callForComponents((clazz, instance) -> {
+            try {
+                instance.reload();
+            } catch (Exception x) {
+                log.error("Failed to reload mechanic '§e{}§r'", clazz.getSimpleName(), x);
+            }
+        });
+        log.info("Reloaded Mechanics in §e{}§rms", String.format("%.3f", timer.stop().resultMilli()));
     }
 
     /**

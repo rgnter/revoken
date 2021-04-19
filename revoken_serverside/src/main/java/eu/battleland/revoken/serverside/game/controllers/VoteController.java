@@ -1,5 +1,6 @@
 package eu.battleland.revoken.serverside.game.controllers;
 
+import eu.battleland.common.Revoken;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.common.abstracted.AController;
 import eu.battleland.common.providers.api.ApiConnector;
@@ -40,14 +41,14 @@ public class VoteController extends AController<RevokenPlugin> {
     private ConcurrentHashMap<UUID, Long> nextVote = new ConcurrentHashMap<>();
 
 
-    public VoteController(@NotNull RevokenPlugin plugin) {
+    public VoteController(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
     }
 
     @Override
     public void initialize() throws Exception {
         try {
-            this.config = getPlugin().instance().getStorageProvider().provideYaml("resources", "configs/vote.yaml", true);
+            this.config = getPlugin().instance().getStorageProvider().provideYaml("resources", "configs/controllers/vote/vote.yaml", true);
         } catch (Exception x) {
             log.error("Failed to provide config to VoteController", x);
         }

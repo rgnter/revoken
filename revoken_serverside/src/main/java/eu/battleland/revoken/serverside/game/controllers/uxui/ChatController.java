@@ -1,5 +1,6 @@
 package eu.battleland.revoken.serverside.game.controllers.uxui;
 
+import eu.battleland.common.Revoken;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.common.abstracted.AController;
 import eu.battleland.common.providers.storage.flatfile.store.AStore;
@@ -57,14 +58,14 @@ public class ChatController extends AController<RevokenPlugin> implements Listen
      */
     private Map<Permission, String> permissionColors = new HashMap<>();
 
-    public ChatController(@NotNull RevokenPlugin plugin) {
+    public ChatController(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
     }
 
     @Override
     public void initialize() throws Exception {
         try {
-            this.chatConfig = getPlugin().instance().getStorageProvider().provideYaml("resources", "configs/chat.yaml", true);
+            this.chatConfig = getPlugin().instance().getStorageProvider().provideYaml("resources", "configs/controllers/chat/chat.yaml", true);
         } catch (Exception x) {
             log.error("Failed to provide config to ChatController", x);
         }

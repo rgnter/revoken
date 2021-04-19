@@ -3,6 +3,7 @@ package eu.battleland.revoken.serverside.game.controllers;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import eu.battleland.common.Revoken;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.common.abstracted.AController;
 import org.bukkit.Bukkit;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class PlaytimeController extends AController<RevokenPlugin> {
 
-    public PlaytimeController(@NotNull RevokenPlugin plugin) {
+    public PlaytimeController(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
     }
 

@@ -10,9 +10,8 @@
 # Version:    ${version}
 # Build time: ${timestamp}
 # --
-# Global configuration
+# Report configuration
 #
 
 discord-webhook:
-  bugreport-webhook: ""
-  playerreport-webhook: ""
+  webhook: ""
