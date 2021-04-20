@@ -1,6 +1,5 @@
 package eu.battleland.revoken.serverside.game;
 
-import eu.battleland.common.abstracted.AController;
 import eu.battleland.common.abstracted.AMechanic;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.common.abstracted.AMngr;
@@ -18,7 +17,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -64,7 +62,7 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
                     if (instance.isTickable())
                         registerSyncTickable(instance::tick);
                     if (instance.isTickableAsync())
-                        registerAsyncTickable(instance::asynctick);
+                        registerAsyncTickable(instance::asyncTick);
 
                     log.debug("Initialized mechanic '§e{}§r'", clazz.getSimpleName());
                 } catch (Exception x) {

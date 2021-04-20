@@ -12,6 +12,11 @@ import lombok.extern.log4j.Log4j2;
 
 import com.google.common.io.ByteStreams;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.GameMode;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import xyz.rgnt.mth.tuples.Triple;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +45,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
     public WearableMechanic(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
-        super.setTickable(true);
+        super.setTickableAsync(true);
 
         SAVE_KEY = new NamespacedKey("battleland", "wearables");
     }
@@ -77,7 +82,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
                     data != null ? data : new ConcurrentHashMap<>()
             );
 
-            origin.compute(wearable.getIdentifier(), (wearableId, wearableData) -> {
+            var newData = origin.compute(wearable.getIdentifier(), (wearableId, wearableData) -> {
                 if (wearableData != null) {
                     deleteWearableFromWorld(wearableData);
                     log.warn("Overriding already existing wearable '{}' on player '{}'!", wearableId, player.getName());
@@ -85,9 +90,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
                 return Triple.of(nmsPlayer, wearableEntity, wearable);
             });
 
-            worldServer.addEntity(wearableEntity);
-            wearableEntity.a(nmsPlayer, true);
-
+            createWearableInWorld(newData, player);
             return origin;
         });
 
@@ -113,7 +116,8 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
                 deleteWearableFromWorld(wearableData);
                 return null;
             });
-            return null;
+            wearables.remove(wearable.getIdentifier());
+            return wearables;
         });
 
         saveWearablesToStorage(player);
@@ -133,11 +137,31 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
             });
             return null;
         });
+        this.wardrobe.remove(player.getUniqueId());
 
         clearWearablesInStorage(player);
         return true;
     }
 
+    private void createWearableInWorld(@NotNull Triple<EntityPlayer, Entity, Wearable> wearableData, @NotNull Player owner) {
+        var entity = wearableData.getSecond();
+        var nmsPlayer = PktStatics.getNmsPlayer(owner);
+        WorldServer worldServer = entity.getWorld().getMinecraftWorld();
+
+        worldServer.addEntity(entity);
+        entity.a(nmsPlayer, true);
+    }
+
+    private void createAllWearablesInWorld(@NotNull Player owner) {
+        System.out.println("call");
+        var wearables = this.wardrobe.get(owner.getUniqueId());
+        if(wearables != null) {
+            wearables.forEach((wearableId, wearableData) ->{
+                System.out.println(wearableId);
+                createWearableInWorld(wearableData, owner);
+            });
+        }
+    }
 
     /**
      * Destroys wearable data from world
@@ -168,8 +192,8 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
         }
     }
 
-    private void deleteAllWearables(@NotNull Player player) {
-        var wearables = this.wardrobe.remove(player.getUniqueId());
+    private void deleteAllWearablesFromWorld(@NotNull Player player) {
+        var wearables = this.wardrobe.get(player.getUniqueId());
         if(wearables != null) {
             wearables.forEach((wearableId, wearableData) ->{
                 deleteWearableFromWorld(wearableData);
@@ -267,7 +291,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
     public void terminate() {
         Bukkit.getOnlinePlayers().stream()
                 .peek(this::saveWearablesToStorage)
-                .forEach(this::deleteAllWearables);
+                .forEach(this::deleteAllWearablesFromWorld);
     }
 
     @Override
@@ -276,7 +300,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
 
     @Override
-    public void tick() {
+    public void asyncTick() {
         this.wardrobe.forEach((uuid, wearables) ->
         {
             if(wearables == null)
@@ -297,6 +321,26 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
     }
 
     @EventHandler
+    public void gamemodeSwitchEvent(PlayerGameModeChangeEvent event) {
+        if(event.getNewGameMode() == GameMode.SPECTATOR) {
+            deleteAllWearablesFromWorld(event.getPlayer());
+        }
+        else if(event.getPlayer().getGameMode() == GameMode.SPECTATOR) {
+            createAllWearablesInWorld(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void playerDeathEvent(PlayerDeathEvent event) {
+        deleteAllWearablesFromWorld(event.getEntity());
+    }
+
+    @EventHandler
+    public void playerRespawnEvent(PlayerRespawnEvent event) {
+        createAllWearablesInWorld(event.getPlayer());
+    }
+
+    @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         System.out.println(loadWearablesFromStorage(event.getPlayer()));
     }
@@ -304,7 +348,9 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         saveWearablesToStorage(event.getPlayer());
-        deleteAllWearables(event.getPlayer());
+        deleteAllWearablesFromWorld(event.getPlayer());
+        this.wardrobe.remove(event.getPlayer().getUniqueId());
+
     }
 
 }
