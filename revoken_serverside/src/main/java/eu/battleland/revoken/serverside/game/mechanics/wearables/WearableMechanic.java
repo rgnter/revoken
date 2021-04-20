@@ -1,5 +1,6 @@
 package eu.battleland.revoken.serverside.game.mechanics.wearables;
 
+
 import eu.battleland.common.Revoken;
 import eu.battleland.common.abstracted.AMechanic;
 import eu.battleland.revoken.serverside.RevokenPlugin;
@@ -9,7 +10,11 @@ import eu.battleland.revoken.serverside.statics.PktStatics;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
+import com.google.common.io.ByteStreams;
 import net.minecraft.server.v1_16_R3.*;
+import xyz.rgnt.mth.tuples.Triple;
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -22,9 +27,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataType;
 
-import org.jetbrains.annotations.NotNull;
-import xyz.rgnt.mth.tuples.Triple;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,22 +36,24 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
     public final NamespacedKey SAVE_KEY;
 
     @Getter
-    private final Map<UUID, Triple<EntityPlayer, Entity, Wearable>> wardrobe = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, Triple<EntityPlayer, Entity, Wearable>>> wardrobe = new ConcurrentHashMap<>();
 
     public WearableMechanic(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
+        super.setTickable(true);
 
-        SAVE_KEY = new NamespacedKey("battleland", "wearing");
+        SAVE_KEY = new NamespacedKey("battleland", "wearables");
     }
 
+
     /**
-     * Clothes the player in the finest silk.
+     * Adds wearable to player.
      *
      * @param wearable Wearable Object
      * @param player   Player   Object
      * @return boolean result
      */
-    public boolean clotheOneselfIn(@NotNull Wearable wearable, @NotNull Player player) {
+    public boolean addWearable(@NotNull Player player, @NotNull Wearable wearable) {
         final EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(player);
         final WorldServer worldServer = nmsPlayer.getWorldServer();
 
@@ -65,40 +69,153 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
         wearableEntity.setCustomName(IChatBaseComponent.ChatSerializer.b("wearable_" + wearable.getIdentifier()));
         wearableEntity.setSlot(EnumItemSlot.HEAD, wearable.getNativeItemStack());
+        wearableEntity.persist = false;
 
-        player.getPersistentDataContainer()
-                .set(SAVE_KEY, PersistentDataType.STRING, wearable.getIdentifier());
 
         this.wardrobe.compute(player.getUniqueId(), (uuid, data) -> {
-            if (data != null)
-                clotheOneselfOff(player);
+            Map<String, Triple<EntityPlayer, Entity, Wearable>> origin = (
+                    data != null ? data : new ConcurrentHashMap<>()
+            );
 
-            wearableEntity.startRiding(nmsPlayer);
+            origin.compute(wearable.getIdentifier(), (wearableId, wearableData) -> {
+                if (wearableData != null) {
+                    deleteWearableFromWorld(wearableData);
+                    log.warn("Overriding already existing wearable '{}' on player '{}'!", wearableId, player.getName());
+                }
+                return Triple.of(nmsPlayer, wearableEntity, wearable);
+            });
+
             worldServer.addEntity(wearableEntity);
-            return Triple.of(nmsPlayer, wearableEntity, wearable);
+            wearableEntity.a(nmsPlayer, true);
+
+            return origin;
         });
 
+        saveWearablesToStorage(player);
         return true;
     }
 
+    public void addAllWearables(@NotNull Player player, @NotNull Wearable ... wearables) {
+        for (Wearable wearable : wearables) {
+            addWearable(player, wearable);
+        }
+    }
+
     /**
-     * Rips and tears down the finest silk the player is surrounded with.
+     * Removes all wearables from player.
      *
      * @param player Player   Object
      * @return boolean result
      */
-    public boolean clotheOneselfOff(@NotNull Player player) {
-        final EntityPlayer nmsPlayer = PktStatics.getNmsPlayer(player);
-        final WorldServer worldServer = nmsPlayer.getWorldServer();
+    public boolean remWearable( @NotNull Player player, @NotNull Wearable wearable) {
+        this.wardrobe.computeIfPresent(player.getUniqueId(), (playerUuid, wearables) -> {
+            wearables.computeIfPresent(wearable.getIdentifier(), (wearableId, wearableData) -> {
+                deleteWearableFromWorld(wearableData);
+                return null;
+            });
+            return null;
+        });
 
-        player.getPersistentDataContainer()
-                .remove(SAVE_KEY);
+        saveWearablesToStorage(player);
+        return true;
+    }
 
-        var data = this.wardrobe.remove(player.getUniqueId());
-        data.getSecond().stopRiding();
-        worldServer.removeEntity(data.getSecond());
+    /**
+     * Removes all wearables from player.
+     *
+     * @param player Player   Object
+     * @return boolean result
+     */
+    public boolean remAllWearables(@NotNull Player player) {
+        this.wardrobe.computeIfPresent(player.getUniqueId(), (playerUuid, wearables) -> {
+            wearables.forEach((wearableId, wearableData) -> {
+                deleteWearableFromWorld(wearableData);
+            });
+            return null;
+        });
 
-        return false;
+        clearWearablesInStorage(player);
+        return true;
+    }
+
+
+    /**
+     * Destroys wearable data from world
+     *
+     * @param wearableData Wearable data
+     */
+    private boolean deleteWearableFromWorld(@NotNull Triple<EntityPlayer, Entity, Wearable> wearableData) {
+        var entity = wearableData.getSecond();
+        WorldServer worldServer = entity.getWorld().getMinecraftWorld();
+
+        wearableData.getSecond().stopRiding(true);
+
+        try {
+            worldServer.removeEntity(wearableData.getSecond());
+            return true;
+        } catch (Exception exception) {
+            var location = wearableData.getSecond().getPositionVector();
+            log.error("Failed to remove entity of wearable '{}'(id: {}, location: {},{},{},{})from World",
+                    wearableData.getThird().getIdentifier(),
+                    wearableData.getSecond().getId(),
+                    location.getX(),
+                    location.getY(),
+                    location.getZ(),
+                    wearableData.getSecond().getWorld().getWorld().getName(),
+                    exception
+            );
+            return false;
+        }
+    }
+
+    private void deleteAllWearables(@NotNull Player player) {
+        var wearables = this.wardrobe.remove(player.getUniqueId());
+        if(wearables != null) {
+            wearables.forEach((wearableId, wearableData) ->{
+                deleteWearableFromWorld(wearableData);
+            });
+        }
+    }
+
+
+    private @NotNull Set<String> loadWearablesFromStorage(@NotNull Player player) {
+        final Set<String> wearables = new HashSet<>();
+        final var dataContainer = player.getPersistentDataContainer();
+        if(!dataContainer.has(SAVE_KEY, PersistentDataType.BYTE_ARRAY))
+            return wearables;
+
+        final var data = dataContainer.get(SAVE_KEY, PersistentDataType.BYTE_ARRAY);
+        if(data == null || data.length == 0)
+            return wearables;
+        final var readerStream = ByteStreams.newDataInput(data);
+
+        try {
+            while (true) {
+                wearables.add(readerStream.readUTF());
+            }
+        } catch (IllegalStateException ignored) {
+            return wearables;
+        }
+
+    }
+
+    private void saveWearablesToStorage(@NotNull Player player) {
+        var wearableData = this.wardrobe.get(player.getUniqueId());
+        if(wearableData == null) {
+            log.warn("Tried to save player '{}' with no wearables.", player.getName());
+            return;
+        }
+        var wearables = wearableData.keySet();
+
+        final var dataContainer = player.getPersistentDataContainer();
+        final var writerStream = ByteStreams.newDataOutput();
+
+        wearables.forEach(writerStream::writeUTF);
+        dataContainer.set(SAVE_KEY, PersistentDataType.BYTE_ARRAY, writerStream.toByteArray());
+    }
+
+    private void clearWearablesInStorage(@NotNull Player player) {
+        player.getPersistentDataContainer().remove(SAVE_KEY);
     }
 
 
@@ -122,17 +239,24 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
     @Override
     public void initialize() throws Exception {
+        Bukkit.getPluginManager().registerEvents(this, getPlugin().instance());
         Bukkit.getCommandMap().register("revoken", new Command("test") {
             @Override
             public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
-                Wearable wearable = Wearable.builder()
+                var player = (Player) sender;
+                Wearable wearable0 = Wearable.builder()
                         .identifier("backpack")
                         .baseMaterial(Material.POPPY)
                         .modelData(1)
                         .build();
+                Wearable wearable1 = Wearable.builder()
+                        .identifier("backpack2")
+                        .baseMaterial(Material.POPPY)
+                        .modelData(2)
+                        .build();
 
-                if (clotheOneselfIn(wearable, (Player) sender))
-                    sender.sendMessage("§a!");
+                addAllWearables(player, wearable0, wearable1);
+                sender.sendMessage("§a!");
 
                 return true;
             }
@@ -141,6 +265,9 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
     @Override
     public void terminate() {
+        Bukkit.getOnlinePlayers().stream()
+                .peek(this::saveWearablesToStorage)
+                .forEach(this::deleteAllWearables);
     }
 
     @Override
@@ -150,21 +277,34 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
     @Override
     public void tick() {
-        this.wardrobe.forEach((uuid, data) -> {
-            var player = data.getFirst();
-            var entity = data.getSecond();
-            if (player.networkManager.isConnected())
-                PktStatics.sendPacketToAll(new PacketPlayOutEntityHeadRotation(entity, (byte) ((int) (player.yaw * 256.0F / 360.0F))));
+        this.wardrobe.forEach((uuid, wearables) ->
+        {
+            if(wearables == null)
+                return;
+
+            wearables.forEach((wearableId, wearableData) -> {
+                if(wearableData == null)
+                    return;
+
+                var player = wearableData.getFirst();
+                var entity = wearableData.getSecond();
+                if(player == null)
+                    return;
+                if (player.networkManager.isConnected())
+                    PktStatics.sendPacketToAll(new PacketPlayOutEntityHeadRotation(entity, (byte) ((int) (player.yaw * 256.0F / 360.0F))));
+            });
         });
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        // load wearable from registry from persistent player storage
+        System.out.println(loadWearablesFromStorage(event.getPlayer()));
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        clotheOneselfOff(event.getPlayer());
+        saveWearablesToStorage(event.getPlayer());
+        deleteAllWearables(event.getPlayer());
     }
+
 }
