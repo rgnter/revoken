@@ -2,8 +2,6 @@ package eu.battleland.revoken.serverside.mcdev;
 
 import net.minecraft.server.v1_16_R3.*;
 
-import java.util.Collections;
-
 public class OverridenPlayerConnection extends PlayerConnection {
 
     public EntityPlayer other;
@@ -16,8 +14,8 @@ public class OverridenPlayerConnection extends PlayerConnection {
     public void a(PacketPlayInFlying packet) {
         super.a(packet);
 
-        if(other != null) {
-            other.yaw   = player.yaw;
+        if (other != null) {
+            other.yaw = player.yaw;
             other.pitch = player.pitch;
 
         }

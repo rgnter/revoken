@@ -2,10 +2,10 @@ package eu.battleland.revoken.serverside.game.controllers.uxui;
 
 import com.destroystokyo.paper.Title;
 import com.iridium.iridiumcolorapi.IridiumColorAPI;
-import eu.battleland.common.Revoken;
+import eu.battleland.revoken.common.Revoken;
+import eu.battleland.revoken.common.abstracted.AController;
+import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.common.abstracted.AController;
-import eu.battleland.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.statics.PlaceholderStatics;
 import lombok.extern.log4j.Log4j2;
 import org.bukkit.Bukkit;
@@ -90,8 +90,8 @@ public class InterfaceController extends AController<RevokenPlugin> implements L
             if (root != null) {
                 this.firstJoinTitleEnabled = root.getBool("enabled", false);
                 // todo replace with adventure
-                this.firstJoinTitleText     = ChatColor.translateAlternateColorCodes('&', IridiumColorAPI.process(root.getString("title", "")));
-                this.firstJoinSubtitleText  =  ChatColor.translateAlternateColorCodes('&', IridiumColorAPI.process(root.getString("subtitle", "")));
+                this.firstJoinTitleText = ChatColor.translateAlternateColorCodes('&', IridiumColorAPI.process(root.getString("title", "")));
+                this.firstJoinSubtitleText = ChatColor.translateAlternateColorCodes('&', IridiumColorAPI.process(root.getString("subtitle", "")));
                 this.firstJoinTitle = new Title.Builder()
                         .fadeIn(root.getInt("times.fade-in", 0))
                         .stay(root.getInt("times.stay", 0))
@@ -102,8 +102,8 @@ public class InterfaceController extends AController<RevokenPlugin> implements L
             var root = configData.getSector("join-title");
             if (root != null) {
                 this.joinTitleEnabled = root.getBool("enabled", false);
-                this.joinTitleText     = IridiumColorAPI.process(root.getString("title", ""));
-                this.joinSubtitleText  =  IridiumColorAPI.process(root.getString("subtitle", ""));
+                this.joinTitleText = IridiumColorAPI.process(root.getString("title", ""));
+                this.joinSubtitleText = IridiumColorAPI.process(root.getString("subtitle", ""));
                 this.joinTitle = new Title.Builder()
                         .fadeIn(root.getInt("times.fade-in", 0))
                         .stay(root.getInt("times.stay", 0))

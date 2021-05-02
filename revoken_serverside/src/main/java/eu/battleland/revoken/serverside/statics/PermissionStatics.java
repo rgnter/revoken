@@ -9,13 +9,13 @@ import org.jetbrains.annotations.Nullable;
 public class PermissionStatics {
 
     public static @Nullable Permission permissionFromString(@Nullable String permissionStr, @NotNull PermissionDefault permissionDefault) {
-        if(permissionStr == null)
+        if (permissionStr == null)
             return null;
-        if(permissionStr.trim().isEmpty())
+        if (permissionStr.trim().isEmpty())
             return null;
 
         Permission permission = Bukkit.getPluginManager().getPermission(permissionStr);
-        if(permission == null) {
+        if (permission == null) {
             permission = new Permission(permissionStr, permissionDefault);
             Bukkit.getPluginManager().addPermission(permission);
         }

@@ -1,7 +1,7 @@
 package eu.battleland.revoken.serverside.game.mechanics;
 
-import eu.battleland.common.Revoken;
-import eu.battleland.common.abstracted.AMechanic;
+import eu.battleland.revoken.common.Revoken;
+import eu.battleland.revoken.common.abstracted.AMechanic;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 
 @Log4j2(topic = "Sitting Mechanic")
-public class SittingMechanic  extends AMechanic<RevokenPlugin> implements Listener {
+public class SittingMechanic extends AMechanic<RevokenPlugin> implements Listener {
 
 
     @Getter
@@ -106,16 +106,17 @@ public class SittingMechanic  extends AMechanic<RevokenPlugin> implements Listen
         // perfection
         Executors.newSingleThreadExecutor().submit(() -> {
             this.entites.forEach((entityUuid, sitData) -> {
-                if(sitData.getSecond().equals(location))
+                if (sitData.getSecond().equals(location))
                     Bukkit.getScheduler().runTask(getPlugin().instance(), () -> {
                         var entity = Bukkit.getEntity(entityUuid);
-                        if(entity != null)
+                        if (entity != null)
                             entity.remove();
                     });
             });
         });
 
     }
+
     public void sitOnLocation(@NotNull Location location, @NotNull Player player) {
         ArmorStand armorStand = (ArmorStand) location.getWorld().spawnEntity(
                 location, EntityType.ARMOR_STAND);
@@ -161,39 +162,38 @@ public class SittingMechanic  extends AMechanic<RevokenPlugin> implements Listen
             // north
             if (direction.getZ() == -1) {
                 yawBase = -180;
-                if(isInnerRight)
-                    yawBase=45;
-                if(isInnerLeft)
-                    yawBase=-45;
+                if (isInnerRight)
+                    yawBase = 45;
+                if (isInnerLeft)
+                    yawBase = -45;
             }
             // south
             else if (direction.getZ() == 1) {
                 yawBase = 0;
 
-                if(isInnerRight)
-                    yawBase=-135;
+                if (isInnerRight)
+                    yawBase = -135;
 
-                if(isInnerLeft)
-                    yawBase=135;
+                if (isInnerLeft)
+                    yawBase = 135;
             }
             // east
             else if (direction.getX() == 1) {
                 yawBase = -90;
-                if(isInnerRight)
-                    yawBase=135;
-                if(isInnerLeft)
-                    yawBase=135;
+                if (isInnerRight)
+                    yawBase = 135;
+                if (isInnerLeft)
+                    yawBase = 135;
             }
             //west
             else if (direction.getX() == -1) {
                 yawBase = 90;
 
-                if(isInnerLeft)
-                    yawBase=-135;
-                if(isInnerRight)
-                    yawBase=135;
-            }
-            else
+                if (isInnerLeft)
+                    yawBase = -135;
+                if (isInnerRight)
+                    yawBase = 135;
+            } else
                 return;
 
             Vector center = block.getBoundingBox().getCenter();

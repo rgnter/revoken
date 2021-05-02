@@ -1,7 +1,7 @@
 package eu.battleland.revoken.serverside.game.mechanics.sexyborder;
 
+import eu.battleland.revoken.common.abstracted.AMechanic;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.common.abstracted.AMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,7 +20,7 @@ public class SexyBorder extends AMechanic<RevokenPlugin> implements Listener {
     }
 
     @Override
-    public void initialize()  {
+    public void initialize() {
         Bukkit.getPluginManager().registerEvents(this, this.getPlugin().instance());
     }
 
@@ -50,7 +50,7 @@ public class SexyBorder extends AMechanic<RevokenPlugin> implements Listener {
         Vector playerVec = event.getTo().toVector();
 
         // distance on X and Z
-        if(Math.sqrt(NumberConversions.square(centerVec.getX() - playerVec.getX())
+        if (Math.sqrt(NumberConversions.square(centerVec.getX() - playerVec.getX())
                 + NumberConversions.square(centerVec.getZ() - playerVec.getZ())) > 40) {
             System.out.println("Outside!");
 

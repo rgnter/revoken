@@ -1,10 +1,10 @@
-package eu.battleland.revoken.serverside.game.controllers.report;
+package eu.battleland.revoken.serverside.game.controllers.security;
 
-import eu.battleland.common.Revoken;
+import eu.battleland.revoken.common.Revoken;
+import eu.battleland.revoken.common.abstracted.AController;
+import eu.battleland.revoken.common.providers.api.ApiConnector;
+import eu.battleland.revoken.common.providers.api.discord.DiscordWebhook;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.common.abstracted.AController;
-import eu.battleland.common.providers.api.ApiConnector;
-import eu.battleland.common.providers.api.discord.DiscordWebhook;
 import eu.battleland.revoken.serverside.statics.PktStatics;
 import eu.battleland.revoken.serverside.statics.TimeStatics;
 import lombok.extern.log4j.Log4j2;
@@ -29,23 +29,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Log4j2(topic = "BugReport Controller")
-public class ReportController extends AController<RevokenPlugin> {
+public class BattleRepController extends AController<RevokenPlugin> {
 
     // 2020 01/01
     public static long UNIX_BASE = 1577833200;
-
-    private ExecutorService threadPool;
-
-    private @Nullable String webhookURL;
     private final @NotNull DiscordWebhook webhook = new DiscordWebhook("");
-
     // uuid of reporter, pair of uuid of reportee and report id
     private final Map<UUID, List<Pair<UUID, Long>>> playerReportedPlayers = new HashMap<>();
     // uuid of reporter, pair of uuid of timestamp and report id
     private final Map<UUID, Pair<Long, Long>> playerLastReport = new HashMap<>();
+    private ExecutorService threadPool;
+    private @Nullable String webhookURL;
 
 
-    public ReportController(@NotNull Revoken<RevokenPlugin> plugin) {
+    public BattleRepController(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
     }
 
@@ -59,16 +56,16 @@ public class ReportController extends AController<RevokenPlugin> {
         Bukkit.getCommandMap().register("revoken", new Command("bugreport", "Used to report a bug", "/bugreport <description>", Arrays.asList("reportbug", "bug", "reportproblem", "problemreport", "problem")) {
             @Override
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] args) {
-                if(!commandSender.hasPermission("revoken.report"))
+                if (!commandSender.hasPermission("revoken.report"))
                     return true;
 
-                if(!(commandSender instanceof Player)) {
+                if (!(commandSender instanceof Player)) {
                     commandSender.sendMessage("§cSender must be a player.");
                     return true;
                 }
                 final Player player = (Player) commandSender;
                 final StringBuilder message = new StringBuilder();
-                if(args.length > 0)
+                if (args.length > 0)
                     message.append(String.join(" ", args));
                 else {
                     commandSender.sendMessage("§8# §fSpecifikuj kratku spravu popisujucu problem.");
@@ -112,15 +109,15 @@ public class ReportController extends AController<RevokenPlugin> {
         Bukkit.getCommandMap().register("eu/battleland/revoken", new Command("playerreport", "Used to report a player", "/playerreport <player name> <description>", Arrays.asList("reportplayer", "reportuser", "hacker")) {
             @Override
             public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] args) {
-                if(!commandSender.hasPermission("revoken.report"))
+                if (!commandSender.hasPermission("revoken.report"))
                     return true;
 
-                if(!(commandSender instanceof Player)) {
+                if (!(commandSender instanceof Player)) {
                     commandSender.sendMessage("§cSender must be a player.");
                     return true;
                 }
                 String targetName = "";
-                if(args.length > 0) {
+                if (args.length > 0) {
                     targetName = args[0];
                 } else {
                     commandSender.sendMessage("§c# §7Špecifikuj meno hráča");
@@ -129,13 +126,13 @@ public class ReportController extends AController<RevokenPlugin> {
 
                 final Player player = (Player) commandSender;
                 final Player target = Bukkit.getPlayer(targetName);
-                if(target == null) {
+                if (target == null) {
                     commandSender.sendMessage("§c# §7Hráč nie je online.");
                     return true;
                 }
 
                 final StringBuilder message = new StringBuilder();
-                if(args.length > 1)
+                if (args.length > 1)
                     message.append(String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
                 else {
                     commandSender.sendMessage("§8# §fSpecifikuj strucny dovod preco reportujes tohto hraca. ");
@@ -170,7 +167,7 @@ public class ReportController extends AController<RevokenPlugin> {
                             player.sendMessage("§cNepodarilo sa mi poslať tvoj report. Skúsim to znova za chvíľu.");
                         }
                     });
-                }  catch (Exception x) {
+                } catch (Exception x) {
                     player.sendMessage("§cNepodarilo sa mi poslať tvoj report. Skúsim to znova za chvíľu.");
                 }
                 return true;
@@ -185,10 +182,10 @@ public class ReportController extends AController<RevokenPlugin> {
 
     @Override
     public void reload() {
-        getPlugin().instance().getGlobalConfig().ifPresent((config) -> {
+        getPlugin().instance().getPluginConfig().ifPresent((config) -> {
             this.webhookURL = config.getData().getString("discord-webhook.webhook", "");
         });
-        if(webhookURL == null || webhookURL.isEmpty())
+        if (webhookURL == null || webhookURL.isEmpty())
             log.warn("Webhook for Discord not provided from global config.");
         else {
             this.webhook.setUrl(this.webhookURL);
@@ -198,7 +195,7 @@ public class ReportController extends AController<RevokenPlugin> {
 
     private @NotNull DiscordWebhook.EmbedObject commonEmbed(@NotNull Player player, @NotNull String message, long id, long reportUnixTimestamp) {
         return new DiscordWebhook.EmbedObject().setColor(new Color(230, 95, 95))
-                .setAuthor(player.getName(),  "", ApiConnector.getSkinHeadUrl(player.getName()))
+                .setAuthor(player.getName(), "", ApiConnector.getSkinHeadUrl(player.getName()))
                 .setTitle(Bukkit.getServer().getMotd() + " - " + Long.toHexString(id))
                 .setDescription(message)
                 .setFooter("Nahlasene: " + Instant.ofEpochSecond(reportUnixTimestamp).atZone(ZoneId.systemDefault()).format(TimeStatics.prettyDateTimeFormat), "");
@@ -210,11 +207,11 @@ public class ReportController extends AController<RevokenPlugin> {
         final Location playerLocation = player.getLocation();
         final int playerPing = nmsPlayer.ping;
         final var rsStatus = player.getResourcePackStatus();
-        final int lastTps    = (int) Bukkit.getServer().getTPS()[0];
+        final int lastTps = (int) Bukkit.getServer().getTPS()[0];
 
 
         embed.addField("Lokacia", String.format("X: %d, Y: %d, Z: %d, World: %s", playerLocation.getBlockX(), playerLocation.getBlockY(), playerLocation.getBlockZ(), playerLocation.getWorld().getName()), false)
-                .setAuthor(player.getName(),  "", ApiConnector.getSkinHeadUrl(player.getName()))
+                .setAuthor(player.getName(), "", ApiConnector.getSkinHeadUrl(player.getName()))
                 .addField("TPS a Ping", lastTps + "tps, " + playerPing + "ms", true)
                 .addField("ResourcePack Status", (rsStatus == null ? "none" : rsStatus.name().toLowerCase()), true)
                 .addField("Client Brand", player.getClientBrandName(), true)

@@ -187,9 +187,28 @@ public class PktStatics {
 
     public static PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook relMoveLook(int id, @NotNull EntityPlayer player) {
         return new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(id,
-                (short)((player.locX() * 32 - player.lastX * 32) * 128),
-                (short)((player.locY() * 32 - player.lastY * 32) * 128),
-                (short)((player.locZ() * 32 - player.lastZ * 32) * 128),
-                (byte)((int)(player.yaw * 256.0F / 360.0F)), (byte)0, player.isOnGround());
+                (short) ((player.locX() * 32 - player.lastX * 32) * 128),
+                (short) ((player.locY() * 32 - player.lastY * 32) * 128),
+                (short) ((player.locZ() * 32 - player.lastZ * 32) * 128),
+                (byte) ((int) (player.yaw * 256.0F / 360.0F)), (byte) 0, player.isOnGround());
+    }
+
+
+    public static void makeEntitiesDummmies(@NotNull Entity... entities) {
+        for (Entity entity : entities) {
+            entity.persistentInvisibility = false;
+            entity.setInvulnerable(true);
+            entity.setInvisible(true);
+
+            if (entity instanceof EntityArmorStand) {
+                ((EntityArmorStand) entity).setMarker(true);
+            }
+            entity.setSilent(true);
+            entity.setBoundingBox(new AxisAlignedBB(0, 0, 0, 0, 0, 0));
+
+            if (entity instanceof EntityLiving)
+                ((EntityLiving) entity).collides = false;
+
+        }
     }
 }

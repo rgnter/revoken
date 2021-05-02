@@ -12,17 +12,17 @@ public class PlaceholderStatics {
 
     /**
      * Processes message with PlaceholderAPI if possible
+     *
      * @param message Message
      * @param player  Player
      * @return Processed message
      */
     public static @NotNull String askPapiForPlaceholders(@NotNull String message, @NotNull Player player) {
-        if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             return PlaceholderAPI.setPlaceholders(player, message);
         }
         return message;
     }
-
 
 
 }

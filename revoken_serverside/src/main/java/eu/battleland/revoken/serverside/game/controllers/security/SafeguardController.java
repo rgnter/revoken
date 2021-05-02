@@ -1,8 +1,8 @@
-package eu.battleland.revoken.serverside.game.controllers;
+package eu.battleland.revoken.serverside.game.controllers.security;
 
-import eu.battleland.common.Revoken;
+import eu.battleland.revoken.common.Revoken;
+import eu.battleland.revoken.common.abstracted.AController;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.common.abstracted.AController;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,7 +19,10 @@ public class SafeguardController extends AController<RevokenPlugin> {
 
     @Override
     public void initialize() throws Exception {
-        Bukkit.getPluginManager().addPermission(new Permission("revoken.safeguard", "Provides protection to player from other players", PermissionDefault.FALSE));
+        Bukkit.getPluginManager().addPermission(
+                new Permission("revoken.safeguard", "Provides protection to player from other players", PermissionDefault.FALSE)
+        );
+
     }
 
     @Override
@@ -36,13 +39,13 @@ public class SafeguardController extends AController<RevokenPlugin> {
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent event) {
         final Player damager, damagee;
-        if(!(event.getDamager() instanceof Player) && !(event.getEntity() instanceof Player))
+        if (!(event.getDamager() instanceof Player) && !(event.getEntity() instanceof Player))
             return;
 
         damager = (Player) event.getDamager();
         damagee = (Player) event.getEntity();
 
-        if(damagee.hasPermission("revoken.safeguard") || damager.hasPermission("revoken.safeguard")) {
+        if (damagee.hasPermission("revoken.safeguard") || damager.hasPermission("revoken.safeguard")) {
             event.setCancelled(true);
         }
     }

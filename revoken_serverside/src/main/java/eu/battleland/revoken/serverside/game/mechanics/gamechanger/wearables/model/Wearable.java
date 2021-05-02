@@ -1,9 +1,9 @@
-package eu.battleland.revoken.serverside.game.mechanics.wearables.model;
+package eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.model;
 
 import lombok.Builder;
 import lombok.Getter;
-import net.minecraft.server.v1_16_R3.*;
-
+import net.minecraft.server.v1_16_R3.NBTTagCompound;
+import net.minecraft.server.v1_16_R3.NBTTagInt;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
@@ -15,16 +15,16 @@ import java.util.Objects;
 @Builder
 public class Wearable {
 
+    @Getter
+    private final @NotNull String identifier;
+    @Getter
+    private final @NotNull Material baseMaterial;
+    @Getter
+    private final @NotNull Integer modelData;
     private @Nullable org.bukkit.inventory.ItemStack bukkitItem;
 
     @Getter
-    private final @NotNull String identifier;
-
-    @Getter
-    private final @NotNull Material baseMaterial;
-
-    @Getter
-    private final @NotNull int modelData;
+    private final @Nullable Impl implementation;
 
     /**
      * Constructs and returns Native ItemStack
@@ -73,5 +73,25 @@ public class Wearable {
     @Override
     public int hashCode() {
         return Objects.hash(identifier, baseMaterial, modelData);
+    }
+
+    /**
+     * braa-ins
+     */
+    public static class Impl {
+        /**
+         * Called upon equip
+         */
+        public void onEquip() {}
+
+        /**
+         * Called upon dequip
+         */
+        public void onDequip() {}
+
+        /**
+         * Called upon tick
+         */
+        public void onTick() {}
     }
 }

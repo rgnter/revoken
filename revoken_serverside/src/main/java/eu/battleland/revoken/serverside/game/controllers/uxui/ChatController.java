@@ -1,9 +1,9 @@
 package eu.battleland.revoken.serverside.game.controllers.uxui;
 
-import eu.battleland.common.Revoken;
+import eu.battleland.revoken.common.Revoken;
+import eu.battleland.revoken.common.abstracted.AController;
+import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.common.abstracted.AController;
-import eu.battleland.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.statics.PermissionStatics;
 import lombok.extern.log4j.Log4j2;
 import org.bukkit.Bukkit;
@@ -16,7 +16,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionDefault;
 import org.jetbrains.annotations.NotNull;
 import xyz.rgnt.mth.tuples.Pair;
 
@@ -32,15 +31,12 @@ import static org.bukkit.Bukkit.getOnlinePlayers;
 public class ChatController extends AController<RevokenPlugin> implements Listener {
 
 
+    private final Map<String, Pair<String, Permission>> emotes = new HashMap<>();
     private @NotNull AStore chatConfig;
-
     private boolean disableBlanks = true;
-
     // horrible settings for emoticons
     private boolean emotesEnabled = true;
     private Permission emotesPermission = null;
-    private final Map<String, Pair<String, Permission>> emotes = new HashMap<>();
-
     // horrible settings for mention
     private boolean mentionEnabled = true;
     private String mentionIndicator = "@";
@@ -125,7 +121,7 @@ public class ChatController extends AController<RevokenPlugin> implements Listen
         if (mentionEnabled)
             if (mentionPermission == null || sender.hasPermission(mentionPermission))
                 for (Player player : getOnlinePlayers()) {
-                    if(!sender.canSee((player)))
+                    if (!sender.canSee((player)))
                         return;
 
                     if (message.matches("(?i).*" + mentionIndicator + player.getName() + "\\b.*")) {

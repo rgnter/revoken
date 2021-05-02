@@ -1,11 +1,12 @@
 package eu.battleland.revoken.serverside.game;
 
-import eu.battleland.common.abstracted.AController;
-import eu.battleland.common.abstracted.AMngr;
+import eu.battleland.revoken.common.abstracted.AController;
+import eu.battleland.revoken.common.abstracted.AMngr;
+import eu.battleland.revoken.common.diagnostics.timings.Timer;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.common.diagnostics.timings.Timer;
 import eu.battleland.revoken.serverside.game.controllers.VoteController;
-import eu.battleland.revoken.serverside.game.controllers.report.ReportController;
+import eu.battleland.revoken.serverside.game.controllers.security.AdminController;
+import eu.battleland.revoken.serverside.game.controllers.security.BattleRepController;
 import eu.battleland.revoken.serverside.game.controllers.uxui.ChatController;
 import eu.battleland.revoken.serverside.game.controllers.uxui.InterfaceController;
 import lombok.extern.log4j.Log4j2;
@@ -13,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 @Log4j2(topic = "Revoken - ControllerMngr")
 public class ControllerMngr extends AMngr<RevokenPlugin, AController<RevokenPlugin>> {
-
     /**
      * Default constructor
+     *
      * @param plugin Plugin instance
      */
     public ControllerMngr(@NotNull RevokenPlugin plugin) {
@@ -32,7 +33,8 @@ public class ControllerMngr extends AMngr<RevokenPlugin, AController<RevokenPlug
                 new InterfaceController(getPlugin()),
                 new ChatController(getPlugin()),
                 new VoteController(getPlugin()),
-                new ReportController(getPlugin())
+                new BattleRepController(getPlugin()),
+                new AdminController(getPlugin())
         );
 
         log.info("Constructing and Initializing Controllers");
@@ -78,5 +80,4 @@ public class ControllerMngr extends AMngr<RevokenPlugin, AController<RevokenPlug
         });
         log.info("Reloaded Controllers in §e{}§rms", String.format("%.3f", timer.stop().resultMilli()));
     }
-
 }
