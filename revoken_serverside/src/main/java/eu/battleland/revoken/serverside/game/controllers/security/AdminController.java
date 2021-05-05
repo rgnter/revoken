@@ -58,7 +58,7 @@ import java.util.function.Consumer;
 public class AdminController extends AController<RevokenPlugin> implements Listener {
 
     private final @NotNull DiscordWebhook webhook
-            = new DiscordWebhook("https://canary.discord.com/api/webhooks/830734467911122974/LWSQG62fFbiqnlM4zB6F5LdKXbm4iUzURFWnphe36aGt3auRmQrr71khDGIWiiaic9bb");
+            = new DiscordWebhook("");
     private final Set<Material> disallowedMaterials = new HashSet<>() {{
         add(Material.BEDROCK);
         add(Material.BARRIER);
