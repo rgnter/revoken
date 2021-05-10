@@ -1,0 +1,56 @@
+#
+#    ██████╗  █████╗ ████████╗████████╗██╗     ███████╗    ██████╗ ██████╗  ██████╗ ██╗  ██╗██╗   ██╗
+#    ██╔══██╗██╔══██╗╚══██╔══╝╚══██╔══╝██║     ██╔════╝    ██╔══██╗██╔══██╗██╔═══██╗╚██╗██╔╝╚██╗ ██╔╝
+#    ██████╔╝███████║   ██║      ██║   ██║     █████╗      ██████╔╝██████╔╝██║   ██║ ╚███╔╝  ╚████╔╝
+#    ██╔══██╗██╔══██║   ██║      ██║   ██║     ██╔══╝      ██╔═══╝ ██╔══██╗██║   ██║ ██╔██╗   ╚██╔╝
+#    ██████╔╝██║  ██║   ██║      ██║   ███████╗███████╗    ██║     ██║  ██║╚██████╔╝██╔╝ ██╗   ██║
+#    ╚═════╝ ╚═╝  ╚═╝   ╚═╝      ╚═╝   ╚══════╝╚══════╝    ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝
+#
+# "ANSI Shadow" from http://patorjk.com/software/taag/
+# Version:    ${version}
+# Build time: ${timestamp}
+# --
+# Motd configuration
+#
+serverlist:
+  'new-serverlist':
+    # Protoccol 1.16 - newest
+    protocol: 735;~
+    motd:
+      - '             <#FFFEE2><bold>🗡</gradient> <gradient:#FF3434:#FF4D00>BattleLand.eu</gradient></bold>
+          &8&l| <gradient:#ffe700:#ffe700>1.8-1.16 </gradient><bold>🗡</bold>'
+      - '             <gradient:#00d5ff:#00fff7>Pridané
+          nové lobby!</gradient> <bold><gradient:#00a6ff:#00a6ff>/lobby</gradient>'
+    hover:
+      - '     &f&l🗡 &c&lBattleLand.eu &8| &e1.8-1.16 &f&l   '
+      - '            &f▶ &7Online: &e%online%/%max% &f◀'
+      - ' '
+      - '     &c&lOdkazy:'
+      - '     &8► &eStore: &fstore.battleland.eu'
+      - '     &8► &eWeb: &fwww.battleland.eu'
+      - '     &8► &eDiscord: &fdiscord.battleland.eu'
+      - '     &8► &eFacebook: &ffb.com/battleland.eu'
+      - ''
+      - '       &cNeváhaj a pripoj sa k nám!'
+  'old-serverlist':
+    # Protocol from 1.8 to 1.15.5
+    protocol: 47;578
+    motd:
+      - "&9//&8todo"
+    hover:
+      - '     &f&l🗡 &c&lBattleLand.eu &8| &e1.8-1.16 &f&l   '
+      - '            &f▶ &7Online: &e%online%/%max% &f◀'
+      - ' '
+      - '     &c&lOdkazy:'
+      - '     &8► &eStore: &fstore.battleland.eu'
+      - '     &8► &eWeb: &fwww.battleland.eu'
+      - '     &8► &eDiscord: &fdiscord.battleland.eu'
+      - '     &8► &eFacebook: &ffb.com/battleland.eu'
+      - ''
+      - '       &cNeváhaj a pripoj sa k nám!'
+  'ping-serverlist':
+    # Protocol 1.7.5 (Fakaheda PING)
+    protocol: 4;4
+    motd:
+      - "BattleLand.eu [1.8-1.16]"
+    sample: { }

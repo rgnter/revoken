@@ -1,4 +1,4 @@
-package eu.battleland.common.providers.api;
+package eu.battleland.revoken.common.providers.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -19,7 +19,7 @@ public class ApiConnector {
             URL url = new URL(rawUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.connect();
-            if(connection.getResponseCode() != 200)
+            if (connection.getResponseCode() != 200)
                 return null;
 
             StringBuilder response = new StringBuilder();

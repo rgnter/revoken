@@ -1,11 +1,11 @@
-package eu.battleland.common.providers.storage.flatfile.store;
+package eu.battleland.revoken.common.providers.storage.flatfile.store;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import eu.battleland.common.Revoken;
-import eu.battleland.common.providers.storage.flatfile.data.FriendlyData;
+import eu.battleland.revoken.common.Revoken;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.FriendlyData;
 import lombok.Getter;
 import org.bspfsystems.yamlconfiguration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -21,18 +21,15 @@ import java.util.Objects;
 public abstract class AStore {
 
     @Getter
-    protected @NotNull Revoken<?> instance;
-
-    @Getter
-    protected File file;
-
-    @Getter
     private @NotNull
     final String root;
     @Getter
     private @NotNull
     final String path;
-
+    @Getter
+    protected @NotNull Revoken<?> instance;
+    @Getter
+    protected File file;
     @Getter
     protected boolean hasDefault;
 
@@ -48,6 +45,14 @@ public abstract class AStore {
         this.root = root != null ? root : "";
         this.path = path;
         this.hasDefault = hasDefault;
+    }
+
+    public static @NotNull AStore makeYaml(@NotNull Revoken<?> plugin, @Nullable String root, @NotNull String path, boolean hasDefault) {
+        return new YamlImpl(plugin, root, path, hasDefault);
+    }
+
+    public static @NotNull AStore makeJson(@NotNull Revoken<?> plugin, @Nullable String root, @NotNull String path, boolean hasDefault) {
+        return new JsonImpl(plugin, root, path, hasDefault);
     }
 
     /**
@@ -93,7 +98,6 @@ public abstract class AStore {
             file.delete();
     }
 
-
     /**
      * Saves on disk
      */
@@ -133,15 +137,6 @@ public abstract class AStore {
      * @return Friendly Data
      */
     public abstract @NotNull FriendlyData getData();
-
-
-    public static @NotNull AStore makeYaml(@NotNull Revoken<?> plugin, @Nullable String root, @NotNull String path, boolean hasDefault) {
-        return new YamlImpl(plugin, root, path, hasDefault);
-    }
-
-    public static @NotNull AStore makeJson(@NotNull Revoken<?> plugin, @Nullable String root, @NotNull String path, boolean hasDefault) {
-        return new JsonImpl(plugin, root, path, hasDefault);
-    }
 
     /**
      * JSON Implementation of store

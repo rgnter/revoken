@@ -1,0 +1,3 @@
+name: BattleProxy
+main: xyz.rgnt.BattleProxy.ProxyPlugin
+version: ${version}

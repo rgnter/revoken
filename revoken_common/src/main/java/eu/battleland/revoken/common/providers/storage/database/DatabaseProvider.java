@@ -1,8 +1,8 @@
-package eu.battleland.common.providers.storage.database;
+package eu.battleland.revoken.common.providers.storage.database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import eu.battleland.common.Revoken;
+import eu.battleland.revoken.common.Revoken;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,15 +13,14 @@ import java.sql.Connection;
 @Log4j2
 public class DatabaseProvider {
 
+    private final HikariConfig config;
     private Revoken<?> plugin;
-
     private HikariDataSource dataSource;
-    private final HikariConfig     config;
+    private Connection connection;
+
     {
         this.config = new HikariConfig();
     }
-
-    private Connection connection;
 
     /**
      * Default constructor
@@ -32,14 +31,15 @@ public class DatabaseProvider {
 
     /**
      * Connects to database
-     * @param host Hostname
-     * @param username Username
-     * @param password Password
+     *
+     * @param host         Hostname
+     * @param username     Username
+     * @param password     Password
      * @param databaseName Databse name
-     * @param port port
+     * @param port         port
      */
     public void connectToMySQL(@NotNull String host, @NotNull String username, @NotNull String password, @NotNull String databaseName, int port) {
-        this.config.setJdbcUrl("jdbc:mysql://" + host +":" + port + "/" + databaseName);
+        this.config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + databaseName);
         this.config.setUsername(username);
         this.config.setPassword(password);
         this.dataSource = new HikariDataSource(config);
@@ -47,11 +47,12 @@ public class DatabaseProvider {
 
     /**
      * Connects to database
+     *
      * @param path Path to file
      */
     public void connectToSQLite(@NotNull String path) {
         final File file = new File(plugin.getDataFolder(), path);
-        if(!file.exists()) {
+        if (!file.exists()) {
             if (!file.getParentFile().exists())
                 file.getParentFile().mkdirs();
             try {

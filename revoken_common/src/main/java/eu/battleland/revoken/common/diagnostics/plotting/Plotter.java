@@ -1,4 +1,4 @@
-package eu.battleland.common.diagnostics.plotting;
+package eu.battleland.revoken.common.diagnostics.plotting;
 
 public class Plotter {
     /*

@@ -10,8 +10,15 @@
 # Version:    ${version}
 # Build time: ${timestamp}
 # --
-# Mechanics Configuration
+# Wearables Configuration
 #
 
-# Disable all mechanics?
-no-mechanics: false
+wearables:
+  'fully-qualified-name':
+    impl: DummyWearable
+    model_data: 123
+    base_material: POPPY
+  'crossed-swords':
+    impl: DummyWearable
+    model_data: 124
+    base_material: POPPY

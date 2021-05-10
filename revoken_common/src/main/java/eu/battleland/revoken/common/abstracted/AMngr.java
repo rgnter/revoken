@@ -1,14 +1,12 @@
-package eu.battleland.common.abstracted;
+package eu.battleland.revoken.common.abstracted;
 
-import eu.battleland.common.Revoken;
+import eu.battleland.revoken.common.Revoken;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public abstract class AMngr<T, X extends IComponent> implements IComponent {
 
@@ -20,6 +18,7 @@ public abstract class AMngr<T, X extends IComponent> implements IComponent {
 
     /**
      * Default constructor for Manager
+     *
      * @param plugin Plugin instance
      */
     public AMngr(@NotNull Revoken<T> plugin) {
@@ -30,6 +29,7 @@ public abstract class AMngr<T, X extends IComponent> implements IComponent {
      * Called upon initialization of Manager
      */
     public abstract void initialize() throws Exception;
+
     /**
      * Called upon termination of Manager
      */
@@ -45,7 +45,7 @@ public abstract class AMngr<T, X extends IComponent> implements IComponent {
         this.registeredComponents.forEach(call);
     }
 
-    public void registerComponents(@NotNull X ... components) {
+    public void registerComponents(@NotNull X... components) {
         for (X component : components) {
             registerComponent(component);
         }
@@ -63,6 +63,5 @@ public abstract class AMngr<T, X extends IComponent> implements IComponent {
     public X obtainComponent(@NotNull Class<X> clazz) {
         return this.registeredComponents.get(clazz);
     }
-
 
 }

@@ -1,4 +1,4 @@
-package eu.battleland.common.providers.storage.flatfile.data;
+package eu.battleland.revoken.common.providers.storage.flatfile.data;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -422,7 +422,6 @@ public abstract class FriendlyData {
     public abstract boolean isSet(@NotNull String path);
 
     /**
-     *
      * @param path Path to child. Path is delimited with dots('.'). <br>Example: <code>parent0.parent1.child</code>
      * @return FriendlyData
      */
@@ -754,7 +753,7 @@ public abstract class FriendlyData {
         @Override
         public @Nullable FriendlyData getSector(@NotNull String path) {
             JsonObject root = getJsonElement(path).getAsJsonObject();
-            if(root != null)
+            if (root != null)
                 return new JsonImpl(root);
             return null;
         }
@@ -775,6 +774,7 @@ public abstract class FriendlyData {
         public YamlImpl(@NotNull YamlConfiguration yamlData) {
             this.yamlData = yamlData;
         }
+
         public YamlImpl(@NotNull ConfigurationSection yamlData) {
             this.yamlData = yamlData;
         }
@@ -965,7 +965,7 @@ public abstract class FriendlyData {
 
         @Override
         public @NotNull Set<String> getKeys(@NotNull String path) {
-            if(path.isEmpty() || path.isBlank())
+            if (path.isEmpty() || path.isBlank())
                 return getKeys();
 
             ConfigurationSection section = yamlData.getConfigurationSection(path);
@@ -988,7 +988,7 @@ public abstract class FriendlyData {
         @Override
         public @Nullable FriendlyData getSector(@NotNull String path) {
             var cfgSec = this.yamlData.getConfigurationSection(path);
-            if(cfgSec != null)
+            if (cfgSec != null)
                 return new YamlImpl(cfgSec);
             return null;
         }

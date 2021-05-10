@@ -1,4 +1,4 @@
-package eu.battleland.common.providers.api.discord;
+package eu.battleland.revoken.common.providers.api.discord;
 
 import lombok.Setter;
 
@@ -54,7 +54,7 @@ public class DiscordWebhook {
         this.embeds.add(embed);
     }
 
-    public void addEmbed(EmbedObject ... embed) {
+    public void addEmbed(EmbedObject... embed) {
         this.embeds.addAll(Arrays.asList(embed));
     }
 
@@ -152,7 +152,7 @@ public class DiscordWebhook {
         URL url = new URL(this.url);
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.addRequestProperty("Content-Type", "application/json");
-        connection.addRequestProperty("User-Agent", "eu/battleland/common/serverside");
+        connection.addRequestProperty("User-Agent", "eu/battleland/revoken/common/serverside");
         connection.setDoOutput(true);
         connection.setRequestMethod("POST");
 
@@ -185,16 +185,36 @@ public class DiscordWebhook {
             return title;
         }
 
+        public EmbedObject setTitle(String title) {
+            this.title = title;
+            return this;
+        }
+
         public String getDescription() {
             return description;
+        }
+
+        public EmbedObject setDescription(String description) {
+            this.description = description;
+            return this;
         }
 
         public String getUrl() {
             return url;
         }
 
+        public EmbedObject setUrl(String url) {
+            this.url = url;
+            return this;
+        }
+
         public Color getColor() {
             return color;
+        }
+
+        public EmbedObject setColor(Color color) {
+            this.color = color;
+            return this;
         }
 
         public Footer getFooter() {
@@ -205,8 +225,18 @@ public class DiscordWebhook {
             return thumbnail;
         }
 
+        public EmbedObject setThumbnail(String url) {
+            this.thumbnail = new Thumbnail(url);
+            return this;
+        }
+
         public Image getImage() {
             return image;
+        }
+
+        public EmbedObject setImage(String url) {
+            this.image = new Image(url);
+            return this;
         }
 
         public Author getAuthor() {
@@ -217,38 +247,8 @@ public class DiscordWebhook {
             return fields;
         }
 
-        public EmbedObject setTitle(String title) {
-            this.title = title;
-            return this;
-        }
-
-        public EmbedObject setDescription(String description) {
-            this.description = description;
-            return this;
-        }
-
-        public EmbedObject setUrl(String url) {
-            this.url = url;
-            return this;
-        }
-
-        public EmbedObject setColor(Color color) {
-            this.color = color;
-            return this;
-        }
-
         public EmbedObject setFooter(String text, String icon) {
             this.footer = new Footer(text, icon);
-            return this;
-        }
-
-        public EmbedObject setThumbnail(String url) {
-            this.thumbnail = new Thumbnail(url);
-            return this;
-        }
-
-        public EmbedObject setImage(String url) {
-            this.image = new Image(url);
             return this;
         }
 

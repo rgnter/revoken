@@ -176,6 +176,17 @@ public class PktStatics {
             tracker.updatePlayer(playerToShow);
     }
 
+    /**
+     * @param player Player
+     * @param entity Entity that will share tracker with player
+     */
+    public static void synchronizeTracker(@NotNull EntityPlayer player, @NotNull Entity entity) {
+        PlayerChunkMap playerChunkMap = ((WorldServer) player.world).getChunkProvider().playerChunkMap;
+        PlayerChunkMap.EntityTracker tracker = playerChunkMap.trackedEntities.get(player.getId());
+        playerChunkMap.trackedEntities.put(entity.getId(), tracker);
+
+    }
+
     public static @NotNull EntityPlayer createEntityPlayerCopy(@NotNull EntityPlayer original) {
         EntityPlayer cpy = new EntityPlayer(getNmsServer(), original.getWorldServer(), original.getProfile(), new PlayerInteractManager(original.getWorldServer()));
         cpy.copyFrom(original, false);

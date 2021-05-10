@@ -1,6 +1,6 @@
-package eu.battleland.common.abstracted;
+package eu.battleland.revoken.common.abstracted;
 
-import eu.battleland.common.Revoken;
+import eu.battleland.revoken.common.Revoken;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,13 +15,16 @@ public abstract class AMechanic<T> implements IComponent {
     @Getter
     private final @NotNull Revoken<T> plugin;
 
-    @Getter @Setter(AccessLevel.PROTECTED)
+    @Getter
+    @Setter(AccessLevel.PROTECTED)
     private boolean tickable = false;
-    @Getter @Setter(AccessLevel.PROTECTED)
+    @Getter
+    @Setter(AccessLevel.PROTECTED)
     private boolean tickableAsync = false;
 
     /**
      * Constructor requiring RevokenPlugin instance
+     *
      * @param plugin Revoken Plugin
      */
     public AMechanic(@NotNull Revoken<T> plugin) {
@@ -32,6 +35,7 @@ public abstract class AMechanic<T> implements IComponent {
      * Called upon initialization of Mechanic
      */
     public abstract void initialize() throws Exception;
+
     /**
      * Called upon termination of Mechanic
      */
@@ -45,10 +49,12 @@ public abstract class AMechanic<T> implements IComponent {
     /**
      * Called on tick
      */
-    public void tick() { }
+    public void tick() {
+    }
 
     /**
      * Called on tick (Running in another thread)
      */
-    public void asyncTick() {}
+    public void asyncTick() {
+    }
 }

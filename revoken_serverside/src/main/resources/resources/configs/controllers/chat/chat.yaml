@@ -94,5 +94,5 @@ chat:
       name: "BLOCK_BELL_USE"
       volume: 1
       pitch: 1
-  permission-color: {}
+  permission-color: { }
 

@@ -67,7 +67,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
         final BlockPosition position = PktStatics.getBlockLocation(player);
 
         final Entity wearableEntity =
-                new BackpackEntity(worldServer, position.getX(), position.getY(), position.getZ());
+                new BackpackEntity(nmsPlayer, worldServer, position.getX(), position.getY(), position.getZ());
         PktStatics.makeEntitiesDummmies(wearableEntity);
 
         wearableEntity.setCustomName(IChatBaseComponent.ChatSerializer.b("wearable_" + wearable.getIdentifier()));
@@ -150,8 +150,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
         WorldServer worldServer = entity.getWorld().getMinecraftWorld();
 
         worldServer.addEntity(entity);
-        entity.passengerTick();
-        return entity.a(nmsPlayer, true); // ride player, force true
+        return true; //entity.a(nmsPlayer, true); // ride player, force true
     }
 
 
@@ -298,22 +297,6 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
 
     @Override
     public void tick() {
-        this.wardrobe.forEach((uuid, wearables) ->
-        {
-            if (wearables == null)
-                return;
-
-            // todo: maybe rather update rotation when player sends packet?
-            wearables.forEach((wearableId, wearableData) -> {
-                var player = wearableData.getFirst();
-                var entity = wearableData.getSecond();
-                var wearable = wearableData.getThird();
-
-                if (player.networkManager.isConnected()) {
-                    PktStatics.sendPacketToAll(new PacketPlayOutEntityHeadRotation(entity, (byte) ((int) (player.yaw * 256.0F / 360.0F))));
-                }
-            });
-        });
     }
 
 
@@ -331,8 +314,6 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
         configuration.ifPresent(config -> {
             var data = config.getData();
             data.getKeys("wearables").forEach(wearableId -> {
-
-
                 try {
                     var wearableData = data.getSector("wearables." + wearableId);
                     if(wearableData == null) {
@@ -400,7 +381,7 @@ public class WearableMechanic extends AMechanic<RevokenPlugin> implements Listen
                             wearable
                     );
                 else
-                    log.warn("Unregistered wearable id '{}' loaded for player '{}'", wearableId, player.getName());
+                    log.warn("Unregistered wearable id '{}' found for player '{}'", wearableId, player.getName());
             }
         }
     }

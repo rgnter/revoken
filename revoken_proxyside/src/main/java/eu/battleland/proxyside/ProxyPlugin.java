@@ -1,10 +1,10 @@
 package eu.battleland.proxyside;
 
 
-import eu.battleland.common.providers.storage.flatfile.StorageProvider;
 import eu.battleland.proxyside.protmotd.ProtocoledServerlist;
 import eu.battleland.proxyside.telemetry.DataCollector;
-import eu.battleland.common.Revoken;
+import eu.battleland.revoken.common.Revoken;
+import eu.battleland.revoken.common.providers.storage.flatfile.StorageProvider;
 import lombok.Getter;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
@@ -19,7 +19,6 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.md_5.bungee.event.EventHandler;
 import org.jetbrains.annotations.NotNull;
-
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,17 +60,17 @@ public class ProxyPlugin extends Plugin implements Revoken<ProxyPlugin>, Listene
             getProxy().getPluginManager().registerCommand(this, new Command("telemetry") {
                 @Override
                 public void execute(CommandSender sender, String[] args) {
-                    if(!sender.hasPermission("battleproxy.admin"))
+                    if (!sender.hasPermission("battleproxy.admin"))
                         return;
 
-                    if(args.length == 0) {
+                    if (args.length == 0) {
                         sender.sendMessage(new TextComponent("§cMissing player argument"));
                         return;
                     }
 
                     String playerName = args[0];
                     ProxiedPlayer player = getProxy().getPlayer(playerName);
-                    if(player == null) {
+                    if (player == null) {
                         sender.sendMessage(new TextComponent("§cMissing player argument"));
                         return;
                     }
@@ -95,10 +94,10 @@ public class ProxyPlugin extends Plugin implements Revoken<ProxyPlugin>, Listene
         getProxy().getPluginManager().registerCommand(this, new Command("proxybroadcast", "", "proxybc") {
             @Override
             public void execute(CommandSender sender, String[] args) {
-                if(!sender.hasPermission("battleproxy.admin"))
+                if (!sender.hasPermission("battleproxy.admin"))
                     return;
 
-                if(args.length == 0) {
+                if (args.length == 0) {
                     sender.sendMessage("§cMissing message argument");
                     return;
                 }
@@ -119,12 +118,12 @@ public class ProxyPlugin extends Plugin implements Revoken<ProxyPlugin>, Listene
         getProxy().getPluginManager().registerCommand(this, new Command("serverbroadcast", "", "serverbc") {
             @Override
             public void execute(CommandSender sender, String[] args) {
-                if(!sender.hasPermission("battleproxy.admin"))
+                if (!sender.hasPermission("battleproxy.admin"))
                     return;
 
                 Collection<ProxiedPlayer> serverPlayers = null;
                 String rawMessage;
-                if(args.length == 0) {
+                if (args.length == 0) {
                     sender.sendMessage("§cMissing server name argument");
                     return;
                 }
@@ -132,8 +131,8 @@ public class ProxyPlugin extends Plugin implements Revoken<ProxyPlugin>, Listene
                 String serverName = args[0];
 
                 // if self reference
-                if(serverName.matches("^~")) {
-                    if(sender instanceof  ProxiedPlayer)
+                if (serverName.matches("^~")) {
+                    if (sender instanceof ProxiedPlayer)
                         serverPlayers = ((ProxiedPlayer) sender).getServer().getInfo().getPlayers();
                     else {
                         sender.sendMessage("§cSelf server reference not possible");
@@ -141,10 +140,10 @@ public class ProxyPlugin extends Plugin implements Revoken<ProxyPlugin>, Listene
                     }
                 }
                 // if target reference
-                if(serverName.matches("~\\b.*\\b")) {
+                if (serverName.matches("~\\b.*\\b")) {
                     String playerName = serverName.substring(1);
                     ProxiedPlayer target = getProxy().getPlayer(playerName);
-                    if(target == null) {
+                    if (target == null) {
                         sender.sendMessage("§cTarget player invalid");
                         return;
                     }
@@ -152,7 +151,7 @@ public class ProxyPlugin extends Plugin implements Revoken<ProxyPlugin>, Listene
                     serverPlayers = target.getServer().getInfo().getPlayers();
                 } else {
                     var server = getProxy().getServerInfo(serverName);
-                    if(server == null) {
+                    if (server == null) {
                         sender.sendMessage("§cTarget server invalid");
                         return;
                     }
@@ -160,10 +159,10 @@ public class ProxyPlugin extends Plugin implements Revoken<ProxyPlugin>, Listene
                     serverPlayers = server.getPlayers();
                 }
 
-                if(serverPlayers == null)
+                if (serverPlayers == null)
                     return;
 
-                if(args.length == 1) {
+                if (args.length == 1) {
                     sender.sendMessage("§cMissing message argument (Supports markdown)");
                     return;
                 }
@@ -218,7 +217,7 @@ public class ProxyPlugin extends Plugin implements Revoken<ProxyPlugin>, Listene
             try {
                 var player = event.getPlayer();
                 DataCollector.Result result = dataCollector.getPlayerData(player);
-                getLogger().info("§7Player '" + player.getName() + "' has joined from " + result.getCountryName() + "(" + result.getCountryCode() + "), through ISP " + result.getIsp() + "(" + result.getIspOrg() + "; " + result.getAs()+ ")");
+                getLogger().info("§7Player '" + player.getName() + "' has joined from " + result.getCountryName() + "(" + result.getCountryCode() + "), through ISP " + result.getIsp() + "(" + result.getIspOrg() + "; " + result.getAs() + ")");
 
             } catch (Exception ignored) {
                 getLogger().warning("Failed to collect data from player '" + event.getPlayer().getName() + "'");

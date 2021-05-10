@@ -10,8 +10,5 @@
 # Version:    ${version}
 # Build time: ${timestamp}
 # --
-# Mechanics Configuration
+# Controllers Configuration
 #
-
-# Disable all mechanics?
-no-mechanics: false

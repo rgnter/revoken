@@ -1,8 +1,8 @@
-package eu.battleland.common.providers.storage.flatfile;
+package eu.battleland.revoken.common.providers.storage.flatfile;
 
 
-import eu.battleland.common.Revoken;
-import eu.battleland.common.providers.storage.flatfile.store.AStore;
+import eu.battleland.revoken.common.Revoken;
+import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

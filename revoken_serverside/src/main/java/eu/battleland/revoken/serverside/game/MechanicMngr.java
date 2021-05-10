@@ -8,6 +8,7 @@ import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.revoken.serverside.game.mechanics.SittingMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.items.ItemsMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.WearableMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.silkspawner.SilkSpawnersMechanic;
 import eu.battleland.revoken.serverside.statics.PktStatics;
 
 import lombok.Getter;
@@ -98,7 +99,9 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
 
                     // game changers
                     new WearableMechanic(getPlugin()),
-                    new ItemsMechanic(getPlugin())
+                    new ItemsMechanic(getPlugin()),
+
+                    new SilkSpawnersMechanic(getPlugin())
             );
 
             log.info("Constructing and Initializing Mechanics");

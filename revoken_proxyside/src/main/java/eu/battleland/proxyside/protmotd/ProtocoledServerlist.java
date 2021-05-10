@@ -1,8 +1,8 @@
 package eu.battleland.proxyside.protmotd;
 
-import eu.battleland.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.proxyside.ProxyPlugin;
 import eu.battleland.proxyside.protmotd.model.Serverlist;
+import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -64,7 +64,7 @@ public class ProtocoledServerlist implements Listener {
 
             Serverlist serverlist = new Serverlist();
             Pair<Integer, Integer> protCond = parseProtocolCondition(root.getString("protocol", "~;~"));
-            serverlist.setMotdLines(root.getStringList(  "motd",  Collections.emptyList()));
+            serverlist.setMotdLines(root.getStringList("motd", Collections.emptyList()));
             serverlist.setSampleLines(root.getStringList("hover", Collections.emptyList()));
 
             this.serverlists.put(protCond, serverlist);

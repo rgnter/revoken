@@ -1,10 +1,11 @@
-package eu.battleland.common.abstracted;
+package eu.battleland.revoken.common.abstracted;
 
 public interface IComponent {
     /**
      * Called upon initialization of Component
      */
     public void initialize() throws Exception;
+
     /**
      * Called upon termination of Component
      */

@@ -1,14 +1,18 @@
-package eu.battleland.common.diagnostics.timings;
+package eu.battleland.revoken.common.diagnostics.timings;
 
 import lombok.Getter;
 
 public class Timer {
 
     @Getter
-    private long timerStart  = 0;
+    private long timerStart = 0;
     @Getter
-    private long timerStop   = 0;
+    private long timerStop = 0;
     private long timerResult = 0;
+
+    public static Timer timings() {
+        return new Timer();
+    }
 
     public Timer start() {
         this.timerStart = System.nanoTime();
@@ -31,9 +35,5 @@ public class Timer {
 
     public double resultSeconds() {
         return this.timerResult / 1e+9;
-    }
-
-    public static Timer timings() {
-        return new Timer();
     }
 }

@@ -1,4 +1,4 @@
-package eu.battleland.common;
+package eu.battleland.revoken.common;
 
 import org.jetbrains.annotations.NotNull;
 

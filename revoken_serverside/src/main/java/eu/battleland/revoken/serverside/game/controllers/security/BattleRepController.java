@@ -38,6 +38,7 @@ public class BattleRepController extends AController<RevokenPlugin> {
     private final Map<UUID, List<Pair<UUID, Long>>> playerReportedPlayers = new HashMap<>();
     // uuid of reporter, pair of uuid of timestamp and report id
     private final Map<UUID, Pair<Long, Long>> playerLastReport = new HashMap<>();
+
     private ExecutorService threadPool;
     private @Nullable String webhookURL;
 
