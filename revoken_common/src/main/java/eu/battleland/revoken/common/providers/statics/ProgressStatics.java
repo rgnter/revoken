@@ -1,5 +1,7 @@
 package eu.battleland.revoken.common.providers.statics;
 
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
@@ -7,13 +9,29 @@ public class ProgressStatics {
 
 
     @Builder
-    public static class BarSettings {
+    public static class BarSettings implements ICodec {
+        @CodecKey("progress.step-min")
         public int stepMin = 0;
+        @CodecKey("progress.step-max")
         public int stepMax = 10;
 
+        @CodecKey("progress.visual.border")
         public final String visualBorder             = "§8┃";
+        @CodecKey("progress.visual.completed-step")
         public final String visualCompletedStep      = "§a░";
+        @CodecKey("progress.visual.uncompleted-step")
         public final String visualUncompletedStep    = "§7░";
+
+
+        @Override
+        public Class<?> type() {
+            return this.getClass();
+        }
+
+        @Override
+        public ICodec instance() {
+            return new BarSettings(0,0);
+        }
     }
 
 

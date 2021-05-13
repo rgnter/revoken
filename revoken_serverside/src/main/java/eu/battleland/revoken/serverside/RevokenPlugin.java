@@ -26,7 +26,6 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
     @Getter
     public static RevokenPlugin instance;
 
-
     /**
      * Providers
      */

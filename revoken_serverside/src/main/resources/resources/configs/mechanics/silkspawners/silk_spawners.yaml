@@ -10,16 +10,26 @@
 # Version:    ${version}
 # Build time: ${timestamp}
 # --
-# Wearables Configuration
+# SilkSpawners Configuration
 #
 
 
-wearables:
-  'fully-qualified-name':
-    impl: DummyWearable
-    model_data: 123
-    base_material: POPPY
-  'crossed-swords':
-    impl: DummyWearable
-    model_data: 124
-    base_material: POPPY
+spawners:
+  required-tools:
+    - "iron_pickaxe"
+    - "diamond_pickaxe"
+    - "netherite_pickaxe"
+  required-enchantments:
+    - "silk_touch"
+  item:
+    name: "§fSpawner §e{entity}"
+    lore: "§7Durabilita §r{durability}"
+  durability: 3
+  show-durability: true
+durability-progress-bar:
+  step-min: 0
+  step-max: 3
+  visual:
+    border: "§8┃"
+    completed-step: "§a░"
+    uncompleted-step: "§7░"

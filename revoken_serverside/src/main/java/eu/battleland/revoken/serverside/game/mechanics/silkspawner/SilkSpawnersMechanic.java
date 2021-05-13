@@ -3,6 +3,9 @@ package eu.battleland.revoken.serverside.game.mechanics.silkspawner;
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AMechanic;
 import eu.battleland.revoken.common.providers.statics.ProgressStatics;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
+import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.revoken.serverside.statics.PermissionStatics;
 import lombok.extern.log4j.Log4j2;
@@ -35,10 +38,8 @@ public class SilkSpawnersMechanic extends AMechanic<RevokenPlugin> implements Li
     public static final NamespacedKey SPAWNER_DURABILITY_DATA_KEY = new NamespacedKey("battleland", "spawner_durability");
     public static final NamespacedKey SPAWNER_TYPE_DATA_KEY = new NamespacedKey("battleland", "spawner_type");
 
-    public static final ProgressStatics.BarSettings progressBarSettings;
-    static {
-        progressBarSettings = ProgressStatics.BarSettings.builder().stepMax(3).build();
-    }
+
+    private Optional<AStore> configuration = Optional.empty();
     public Settings settings = new Settings();
 
 
@@ -50,6 +51,8 @@ public class SilkSpawnersMechanic extends AMechanic<RevokenPlugin> implements Li
     public void initialize() throws Exception {
         PermissionStatics.permissionFromString("revoken.silkspawner.admin", PermissionDefault.OP);
         PermissionStatics.permissionFromString("revoken.silkspawner.bypass", PermissionDefault.OP);
+
+        settings.setup();
 
         Bukkit.getPluginManager().registerEvents(this, getPlugin().instance());
         Bukkit.getCommandMap().register("revoken", new Command("givespawner", "", "", Arrays.asList("spawner", "silkspawner")) {
@@ -64,7 +67,7 @@ public class SilkSpawnersMechanic extends AMechanic<RevokenPlugin> implements Li
                 }
                 String targetName = args[0];
                 Player target = Bukkit.getPlayer(targetName);
-                if(target == null) {
+                if (target == null) {
                     commandSender.sendMessage("§cInvalid player '" + targetName + "'");
                     return true;
                 }
@@ -102,7 +105,7 @@ public class SilkSpawnersMechanic extends AMechanic<RevokenPlugin> implements Li
 
     @Override
     public void reload() {
-
+        settings.setup();
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -111,10 +114,10 @@ public class SilkSpawnersMechanic extends AMechanic<RevokenPlugin> implements Li
         final var tool = event.getPlayer().getInventory().getItemInMainHand();
         if (!(blockState instanceof CraftCreatureSpawner))
             return;
-        if(!this.settings.requiredTools.contains(tool.getType()))
+        if (!this.settings.requiredTools.contains(tool.getType()))
             return;
-        for(final var requiredEnchant : this.settings.requiredEnchantments) {
-            if(!tool.containsEnchantment(requiredEnchant))
+        for (final var requiredEnchant : this.settings.requiredEnchantments) {
+            if (!tool.containsEnchantment(requiredEnchant))
                 return;
         }
 
@@ -171,7 +174,7 @@ public class SilkSpawnersMechanic extends AMechanic<RevokenPlugin> implements Li
         final var meta = itemStack.getItemMeta();
         final var data = meta.getPersistentDataContainer();
 
-        String progressBar = ProgressStatics.getProgressBar(progressBarSettings, newDurability - 1, settings.defaultSpawnerDurability);
+        String progressBar = ProgressStatics.getProgressBar(settings.progressBarSettings, newDurability - 1, settings.defaultSpawnerDurability);
         String entityName = entity.name().toLowerCase().replace("_", " ");
 
         final var nameComponent = Component.text(settings.itemStackName.replaceAll("(?i)\\{entity\\}", entityName));
@@ -186,22 +189,72 @@ public class SilkSpawnersMechanic extends AMechanic<RevokenPlugin> implements Li
         return itemStack;
     }
 
-    static class Settings {
+    class Settings implements ICodec {
+        @CodecKey("spawners.required-tools")
         public Set<Material> requiredTools = new HashSet<>() {{
             add(Material.IRON_PICKAXE);
             add(Material.DIAMOND_PICKAXE);
             add(Material.NETHERITE_PICKAXE);
         }};
 
+        @CodecKey("spawners.required-enchantments")
         public Set<Enchantment> requiredEnchantments = new HashSet<>() {{
             add(Enchantment.SILK_TOUCH);
         }};
 
+        @CodecKey("spawners.item.name")
         public String itemStackName = "§fSpawner §e{entity}";
+        @CodecKey("spawners.item.lore")
         public String itemStackLore = "§7Durabilita §r{durability}";
 
+        @CodecKey("spawners.durability")
         public int defaultSpawnerDurability = 3;
+        @CodecKey("spawners.show-durability")
         public boolean showDurability = true;
+
+        @CodecKey("durability-progress-bar")
+        public ProgressStatics.BarSettings progressBarSettings
+                = ProgressStatics.BarSettings.builder().stepMax(3).build();
+
+
+        public Settings() {
+        }
+
+        protected void setup() {
+            configuration.or(() -> {
+                try {
+                    configuration = Optional.of(getPlugin().instance().getStorageProvider()
+                            .provideYaml("resources", "configs/mechanics/silkspawners/silk_spawners.yaml", true));
+                } catch (Exception e) {
+                    log.error("Failed to provide configuration", e);
+                }
+                return configuration;
+            }).ifPresent((config) -> {
+                try {
+                    config.prepare();
+                } catch (Exception e) {
+                    log.error("Failed to prepare configuration", e);
+                }
+
+                try {
+                    config.getData().decode(this);
+                } catch (Exception e) {
+                    log.error("Failed to decode settings: {}", e.getMessage());
+                }
+                log.info("Loaded settings");
+            });
+
+        }
+
+        @Override
+        public Class<?> type() {
+            return this.getClass();
+        }
+
+        @Override
+        public ICodec instance() {
+            return new Settings();
+        }
     }
 
 }

@@ -1,4 +1,4 @@
-package eu.battleland.revoken.serverside.game.mechanics;
+package eu.battleland.revoken.serverside.game.mechanics.gamechanger;
 
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AMechanic;
@@ -33,8 +33,6 @@ import java.util.concurrent.Executors;
 
 @Log4j2(topic = "Sitting Mechanic")
 public class SittingMechanic extends AMechanic<RevokenPlugin> implements Listener {
-
-
     @Getter
     private TreeMap<UUID, Pair<UUID, Location>> entites = new TreeMap<>();
 
@@ -63,18 +61,22 @@ public class SittingMechanic extends AMechanic<RevokenPlugin> implements Listene
 
     @Override
     public void terminate() {
+        clearEntities();
+    }
+
+    @Override
+    public void reload() {
+        clearEntities();
+    }
+
+    private void clearEntities() {
         getEntites().forEach((entityUuid, data) -> {
             var entity = Bukkit.getEntity(entityUuid);
             if (entity != null) {
                 entity.remove();
             } else
-                log.warn("SittingMechanic tried to remove non-existing entity");
+                log.warn("Tried to remove non-existing entity");
         });
-    }
-
-    @Override
-    public void reload() {
-
     }
 
 

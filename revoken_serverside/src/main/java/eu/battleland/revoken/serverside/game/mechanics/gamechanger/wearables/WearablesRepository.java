@@ -3,6 +3,7 @@ package eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.model.Wearable;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Map;
@@ -44,6 +45,15 @@ public class WearablesRepository {
      */
     public static void unregisterWearable(@NotNull Wearable wearable) {
         unregisterWearable(wearable.getIdentifier());
+    }
+
+    /**
+     *
+     * @param wearableId Wearable identifier
+     * @return Wearable
+     */
+    public static @Nullable Wearable getWearable(@NotNull String wearableId) {
+        return wearables.get(wearableId);
     }
 
 

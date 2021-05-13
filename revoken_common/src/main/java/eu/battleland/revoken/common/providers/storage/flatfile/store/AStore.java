@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import eu.battleland.revoken.common.Revoken;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.FriendlyData;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.AuxData;
 import lombok.Getter;
 import org.bspfsystems.yamlconfiguration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -136,14 +136,14 @@ public abstract class AStore {
     /**
      * @return Friendly Data
      */
-    public abstract @NotNull FriendlyData getData();
+    public abstract @NotNull AuxData getData();
 
     /**
      * JSON Implementation of store
      */
     private static class JsonImpl extends AStore {
 
-        private FriendlyData data;
+        private AuxData data;
         private JsonObject jsonData;
 
         public JsonImpl(@NotNull Revoken<?> instance, @Nullable String root, @NotNull String path, boolean hasDefault) {
@@ -156,7 +156,7 @@ public abstract class AStore {
         public void load() throws Exception {
             try (Reader reader = new FileReader(this.file)) {
                 this.jsonData = new JsonParser().parse(reader).getAsJsonObject();
-                this.data = FriendlyData.fromJson(this.jsonData);
+                this.data = AuxData.fromJson(this.jsonData);
             } catch (Exception x) {
                 throw new Exception("Failed to load '" + getResourcePath() + "': " + x.getMessage(), x);
             }
@@ -182,7 +182,7 @@ public abstract class AStore {
             if (hasDefault) {
                 try (Reader reader = new InputStreamReader(Objects.requireNonNull(instance.getResource(getResourcePath())))) {
                     this.jsonData = new JsonParser().parse(reader).getAsJsonObject();
-                    this.data = FriendlyData.fromJson(this.jsonData);
+                    this.data = AuxData.fromJson(this.jsonData);
                     save();
                 } catch (Exception x) {
                     throw new Exception("Failed to load '" + getResourcePath() + "': " + x.getMessage(), x);
@@ -191,7 +191,7 @@ public abstract class AStore {
         }
 
         @Override
-        public @NotNull FriendlyData getData() {
+        public @NotNull AuxData getData() {
             return data;
         }
     }
@@ -201,7 +201,7 @@ public abstract class AStore {
      */
     private static class YamlImpl extends AStore {
 
-        private FriendlyData data;
+        private AuxData data;
         private YamlConfiguration yamlData;
 
         public YamlImpl(@NotNull Revoken<?> instance, @Nullable String root, @NotNull String path, boolean hasDefault) {
@@ -216,7 +216,7 @@ public abstract class AStore {
                 this.yamlData = new YamlConfiguration();
                 this.yamlData.load(reader);
 
-                this.data = FriendlyData.fromYaml(this.yamlData);
+                this.data = AuxData.fromYaml(this.yamlData);
             } catch (Exception x) {
                 throw new Exception("Failed to load '" + getResourcePath() + "': " + x.getMessage(), x);
             }
@@ -229,7 +229,7 @@ public abstract class AStore {
         }
 
         @Override
-        public @NotNull FriendlyData getData() {
+        public @NotNull AuxData getData() {
             return data;
         }
     }

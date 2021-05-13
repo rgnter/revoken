@@ -1,21 +1,19 @@
-package eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.mcdev;
+package eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.nms;
 
-import eu.battleland.revoken.serverside.statics.PktStatics;
-import io.netty.buffer.Unpooled;
+import lombok.Getter;
 import net.minecraft.server.v1_16_R3.*;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
+public class WearableEntity extends EntityArmorStand {
 
-public class BackpackEntity extends EntityArmorStand {
-
+    @Getter
     private EntityPlayer owner;
 
-
-    public BackpackEntity(EntityPlayer owner, World world, double d0, double d1, double d2) {
+    public WearableEntity(@NotNull EntityPlayer owner, World world, double d0, double d1, double d2) {
         super(world, d0, d1, d2);
         this.owner = owner;
     }
+
 
     @Override
     public void tick() {

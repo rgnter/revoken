@@ -3,11 +3,16 @@ package eu.battleland.revoken.serverside.game;
 import eu.battleland.revoken.common.abstracted.AMechanic;
 import eu.battleland.revoken.common.abstracted.AMngr;
 import eu.battleland.revoken.common.diagnostics.timings.Timer;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.AuxData;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.AuxCodec;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.ex.CodecException;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.revoken.serverside.game.mechanics.SittingMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.gamechanger.SittingMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.items.ItemsMechanic;
-import eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.WearableMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.WearablesMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.silkspawner.SilkSpawnersMechanic;
 import eu.battleland.revoken.serverside.statics.PktStatics;
 
@@ -37,10 +42,12 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
     private final ConcurrentHashMap<Integer, Runnable> asyncTickables = new ConcurrentHashMap<>();
     private final ExecutorService tickThreadPool;
 
-    @Getter
-    private final @NotNull MechanicMngr.Settings settings;
+
     @Getter
     private @NotNull Optional<AStore> configuration = Optional.empty();
+    @Getter
+    private final @NotNull Settings settings = new Settings();
+
     {
         this.tickThreadPool = Executors.newCachedThreadPool(new ThreadFactory() {
             @Override
@@ -48,10 +55,7 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
                 return new Thread(r, "Revoken - Tickable Thread");
             }
         });
-        this.settings   = new Settings();
     }
-
-
 
 
     /**
@@ -90,15 +94,15 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
 
     @Override
     public void initialize() {
-        settings.setupConfig();
+        settings.setup();
 
-        if(!settings.noMechanics) {
+        if (!settings.noMechanics) {
             Timer timer = Timer.timings().start();
             registerComponents(
                     new SittingMechanic(getPlugin()),
 
                     // game changers
-                    new WearableMechanic(getPlugin()),
+                    new WearablesMechanic(getPlugin()),
                     new ItemsMechanic(getPlugin()),
 
                     new SilkSpawnersMechanic(getPlugin())
@@ -174,6 +178,30 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
                 }
             });
 
+            Bukkit.getCommandMap().register("revoken", new Command("resourcepack") {
+                @Override
+                public boolean execute(@NotNull CommandSender commandSender, @NotNull String s, @NotNull String[] strings) {
+                    if (commandSender instanceof Player) {
+                        if (((Player) commandSender).hasResourcePack()) {
+                            commandSender.sendMessage("§aYou already have resourcepack enabled!");
+                            return true;
+                        }
+                        commandSender.sendMessage("§aAccept resourcepack prompt");
+                        ((Player) commandSender).setResourcePack(
+                                "http://battleland.eu/file/battleland.zip",
+                                "48c9f5f6ab0416d8b05403cac7f12ff1bf767b59"
+                        );
+                    } else {
+                        commandSender.sendMessage("§7http://battleland.eu/file/battleland.zip (48c9f5f6ab0416d8b05403cac7f12ff1bf767b59)");
+                        StringBuilder rpStatus = new StringBuilder();
+                        Bukkit.getOnlinePlayers().stream().filter(Player::hasResourcePack).map(Player::getName).forEach(playerName -> rpStatus.append(playerName).append(" "));
+                        commandSender.sendMessage(rpStatus.toString());
+                    }
+
+                    return true;
+                }
+            });
+
             Bukkit.getCommandMap().register("revoken", new Command("lagclient") {
                 @Override
                 public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
@@ -200,7 +228,7 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
 
     @Override
     public void terminate() {
-        if(!settings.noMechanics){
+        if (!settings.noMechanics) {
             Timer timer = Timer.timings().start();
             log.info("Terminating Mechanics");
             callForComponents((clazz, instance) -> {
@@ -219,10 +247,11 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
     @Override
     public void reload() {
         Timer timer = Timer.timings().start();
+        settings.setup();
 
-        if(!settings.noMechanics) {
+        if (!settings.noMechanics) {
             log.info("Reloading Mechanics");
-            settings.setupConfig();
+
             callForComponents((clazz, instance) -> {
                 try {
                     instance.reload();
@@ -267,21 +296,50 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
         this.asyncTickables.remove(tickableId);
     }
 
-    private class Settings {
+    private class Settings implements ICodec {
+        @CodecKey("resourcepack.force")
+        private Boolean forceResourcepack = false;
+        @CodecKey("resourcepack.url")
+        private String resourcePackUrl = "";
+        @CodecKey("resourcepack.hash")
+        private String resourcePackHash = "";
+
+        @CodecKey("mechanics.no-mechanics")
         private boolean noMechanics;
 
-        protected void setupConfig() {
-            try {
-                if (configuration.isEmpty())
+        protected void setup() {
+            configuration.or(() -> {
+                try {
                     configuration = Optional.of(getPlugin().instance().getStorageProvider()
-                            .provideYaml("resources", "configs/plugin_config.yaml", true));
-            } catch (Exception x) {
-                log.error("Failed to provide mechanic config", x);
-            }
-            configuration.ifPresent(config -> {
-                var data = config.getData();
-                this.noMechanics = data.getBool("no-mechanics", false);
+                            .provideYaml("resources", "configs/mechanics/mechanics_config.yaml", true));
+                } catch (Exception e) {
+                    log.error("Failed to provide configuration", e);
+                }
+                return configuration;
+            }).ifPresent((config) -> {
+                try {
+                    config.prepare();
+                } catch (Exception e) {
+                    log.error("Failed to prepare configuration", e);
+                }
+
+                try {
+                    config.getData().decode(this);
+                } catch (Exception e) {
+                    log.error("Failed to decode settings: {}", e.getMessage());
+                }
+
             });
+        }
+
+        @Override
+        public Class<?> type() {
+            return Settings.class;
+        }
+
+        @Override
+        public ICodec instance() {
+            return new Settings();
         }
     }
 }

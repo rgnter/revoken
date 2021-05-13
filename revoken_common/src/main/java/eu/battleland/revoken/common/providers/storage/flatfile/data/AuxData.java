@@ -4,6 +4,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.AuxCodec;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.ex.CodecException;
 import org.bspfsystems.yamlconfiguration.configuration.ConfigurationSection;
 import org.bspfsystems.yamlconfiguration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -14,14 +17,14 @@ import java.util.*;
 /**
  * Provides functionality to easily work with different types of storage formats
  */
-public abstract class FriendlyData {
+public abstract class AuxData {
 
     /**
      * Creates empty FriendlyData from JSON source.
      *
      * @return FriendlyData
      */
-    public static @NotNull FriendlyData fromEmptyJson() {
+    public static @NotNull AuxData fromEmptyJson() {
         return new JsonImpl(new JsonObject());
     }
 
@@ -30,7 +33,7 @@ public abstract class FriendlyData {
      *
      * @return FriendlyData
      */
-    public static @NotNull FriendlyData fromEmptyYaml() {
+    public static @NotNull AuxData fromEmptyYaml() {
         return new YamlImpl(new YamlConfiguration());
     }
 
@@ -41,7 +44,7 @@ public abstract class FriendlyData {
      * @param source JSON source
      * @return FriendlyData
      */
-    public static @NotNull FriendlyData fromJson(@NotNull JsonObject source) {
+    public static @NotNull AuxData fromJson(@NotNull JsonObject source) {
         return new JsonImpl(source);
     }
 
@@ -51,7 +54,7 @@ public abstract class FriendlyData {
      * @param source YAML source
      * @return FriendlyData
      */
-    public static @NotNull FriendlyData fromYaml(@NotNull YamlConfiguration source) {
+    public static @NotNull AuxData fromYaml(@NotNull YamlConfiguration source) {
         return new YamlImpl(source);
     }
 
@@ -425,7 +428,26 @@ public abstract class FriendlyData {
      * @param path Path to child. Path is delimited with dots('.'). <br>Example: <code>parent0.parent1.child</code>
      * @return FriendlyData
      */
-    public abstract @Nullable FriendlyData getSector(@NotNull String path);
+    public abstract @Nullable AuxData getSector(@NotNull String path);
+
+
+    /**
+     * Decodes class from this data
+     * @param codec Class to decode
+     * @throws CodecException
+     */
+    public void decode(@NotNull ICodec codec) throws Exception {
+        AuxCodec.decode(codec, this);
+    }
+
+    /**
+     * Encodes class to this data
+     * @param codec Class to encode
+     * @throws CodecException
+     */
+    public void encode(@NotNull ICodec codec) throws Exception {
+        AuxCodec.encode(codec, this);
+    }
 
 
     public abstract @NotNull String toString();
@@ -433,7 +455,7 @@ public abstract class FriendlyData {
     /**
      * Implements FriendlyData for JSON
      */
-    private static class JsonImpl extends FriendlyData {
+    private static class JsonImpl extends AuxData {
 
         protected final JsonObject jsonData;
 
@@ -516,7 +538,7 @@ public abstract class FriendlyData {
             if (result == null)
                 val = null;
             else
-                val = result.toString();
+                val = result.getAsString();
             return val;
         }
 
@@ -751,7 +773,7 @@ public abstract class FriendlyData {
         }
 
         @Override
-        public @Nullable FriendlyData getSector(@NotNull String path) {
+        public @Nullable AuxData getSector(@NotNull String path) {
             JsonObject root = getJsonElement(path).getAsJsonObject();
             if (root != null)
                 return new JsonImpl(root);
@@ -767,7 +789,7 @@ public abstract class FriendlyData {
     /**
      * Implements FriendlyData for YAML
      */
-    private static class YamlImpl extends FriendlyData {
+    private static class YamlImpl extends AuxData {
 
         protected final ConfigurationSection yamlData;
 
@@ -986,7 +1008,7 @@ public abstract class FriendlyData {
         }
 
         @Override
-        public @Nullable FriendlyData getSector(@NotNull String path) {
+        public @Nullable AuxData getSector(@NotNull String path) {
             var cfgSec = this.yamlData.getConfigurationSection(path);
             if (cfgSec != null)
                 return new YamlImpl(cfgSec);

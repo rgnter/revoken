@@ -13,5 +13,14 @@
 # Mechanics Configuration
 #
 
-# Disable all mechanics?
-no-mechanics: false
+# Mechanics
+mechanics:
+  # Disable all mechanics?
+  no-mechanics: false
+
+# Resourcepack
+resourcepack:
+  force: false
+  url: "http://battleland.eu/file/battleland.zip"
+  hash: "48c9f5f6ab0416d8b05403cac7f12ff1bf767b59"
+
