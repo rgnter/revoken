@@ -1,23 +1,89 @@
 package eu.battleland.revoken.common.providers.storage.flatfile.data;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
+import com.google.gson.internal.Streams;
+import com.google.gson.stream.JsonReader;
 import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.AuxCodec;
 import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
 import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.ex.CodecException;
+import eu.battleland.revoken.common.util.ThrowingFunction;
+import lombok.Setter;
 import org.bspfsystems.yamlconfiguration.configuration.ConfigurationSection;
 import org.bspfsystems.yamlconfiguration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.StringReader;
 import java.util.*;
 
 /**
  * Provides functionality to easily work with different types of storage formats
  */
 public abstract class AuxData {
+
+    /**
+     *
+     */
+    public static enum Type {
+        JSON((obj) -> {
+            if(obj != null)
+                return AuxData.fromJson((JsonObject) obj);
+            return AuxData.fromEmptyJson();
+        }),
+        YAML((obj) -> {
+            if(obj != null)
+                return AuxData.fromYaml((YamlConfiguration) obj);
+            return AuxData.fromEmptyYaml();
+        }),
+        PARSABLE_JSON((source) -> {
+            if(source == null)
+                return JSON.get().apply(null);
+            try {
+                final var reader = new JsonReader(new StringReader((String)source));
+                reader.setLenient(true);
+
+                return AuxData.fromJson(Streams.parse(reader).getAsJsonObject());
+            } catch (Exception x) {
+                throw new Exception("Failed to parse json: " + x.getMessage(), x);
+            }
+        }),
+        PARSABLE_YAML((source) -> {
+            if(source == null)
+                return YAML.get().apply(null);
+            try {
+                final var parsed = new YamlConfiguration();
+                parsed.loadFromString((String) source);
+
+                return AuxData.fromYaml(parsed);
+            } catch (Exception x) {
+                throw new Exception("Failed to parse yaml: " + x.getMessage(), x);
+            }
+        });
+
+        @Setter
+        private ThrowingFunction<Object, AuxData, Exception> dataGenerator;
+
+        private Type(ThrowingFunction<Object, AuxData, Exception> data) {
+            this.dataGenerator = data;
+        }
+
+        public boolean isParsable() {
+            return isParsable(this);
+        }
+
+        public static boolean isParsable(@NotNull Type type) {
+            switch (type) {
+                case PARSABLE_JSON:
+                case PARSABLE_YAML:
+                    return true;
+            }
+            return false;
+        }
+
+        public ThrowingFunction<Object, AuxData, Exception> get() {
+            return dataGenerator;
+        }
+    }
 
     /**
      * Creates empty FriendlyData from JSON source.
@@ -452,7 +518,13 @@ public abstract class AuxData {
 
     public abstract @NotNull String toString();
 
-    /**
+
+    private static class ParsableJsonImpl extends JsonImpl {
+        public ParsableJsonImpl(@NotNull String jsonData) {
+            super(new JsonParser().parse(jsonData).getAsJsonObject());
+        }
+    }
+      /**
      * Implements FriendlyData for JSON
      */
     private static class JsonImpl extends AuxData {
@@ -782,7 +854,7 @@ public abstract class AuxData {
 
         @Override
         public @NotNull String toString() {
-            return jsonData.toString();
+            return jsonData.getAsString();
         }
     }
 

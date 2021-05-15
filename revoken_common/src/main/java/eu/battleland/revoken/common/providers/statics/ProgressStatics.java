@@ -22,16 +22,6 @@ public class ProgressStatics {
         @CodecKey("progress.visual.uncompleted-step")
         public final String visualUncompletedStep    = "§7░";
 
-
-        @Override
-        public Class<?> type() {
-            return this.getClass();
-        }
-
-        @Override
-        public ICodec instance() {
-            return new BarSettings(0,0);
-        }
     }
 
 

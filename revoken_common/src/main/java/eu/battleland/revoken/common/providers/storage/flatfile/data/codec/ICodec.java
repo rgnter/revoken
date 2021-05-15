@@ -5,14 +5,11 @@ import eu.battleland.revoken.common.providers.storage.flatfile.data.AuxData;
 public interface ICodec {
 
     /**
-     * @return Type of this class
+     * @return Default type of this class
      */
-    Class<?> type();
-
-    /**
-     * @return Instance of this class
-     */
-    ICodec instance();
+    default Class<?> type() {
+        return this.getClass();
+    }
 
     /**
      * @return Default transformer for this codec
@@ -31,7 +28,7 @@ public interface ICodec {
     /**
      * @return Default codec data format
      */
-    default AuxData defaultDataFormat() {
-        return AuxData.fromEmptyYaml();
+    default AuxData.Type dataType() {
+        return AuxData.Type.YAML;
     }
 }

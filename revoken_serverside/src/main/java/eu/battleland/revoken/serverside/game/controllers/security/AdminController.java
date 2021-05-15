@@ -5,8 +5,8 @@ import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AController;
 import eu.battleland.revoken.common.providers.api.discord.DiscordWebhook;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.revoken.serverside.statics.PermissionStatics;
-import eu.battleland.revoken.serverside.statics.PktStatics;
+import eu.battleland.revoken.serverside.providers.statics.PermissionStatics;
+import eu.battleland.revoken.serverside.providers.statics.PktStatics;
 import lombok.extern.log4j.Log4j2;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.MinecraftServer;
@@ -82,7 +82,7 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
     @Override
     public void initialize() throws Exception {
         Bukkit.getPluginManager().registerEvents(this, getPlugin().instance());
-        PermissionStatics.permissionFromString("revoken.staff", PermissionDefault.OP);
+        PermissionStatics.newPermission("revoken.staff", PermissionDefault.OP);
 
         Bukkit.getCommandMap().register("revoken", new Command("invsee") {
             @Override

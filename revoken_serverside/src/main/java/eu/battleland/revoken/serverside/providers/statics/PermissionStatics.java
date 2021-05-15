@@ -1,4 +1,4 @@
-package eu.battleland.revoken.serverside.statics;
+package eu.battleland.revoken.serverside.providers.statics;
 
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
@@ -8,7 +8,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class PermissionStatics {
 
-    public static @Nullable Permission permissionFromString(@Nullable String permissionStr, @NotNull PermissionDefault permissionDefault) {
+
+    public static @Nullable Permission newPermission(@Nullable String permissionStr, @NotNull PermissionDefault permissionDefault) {
         if (permissionStr == null)
             return null;
         if (permissionStr.trim().isEmpty())
@@ -22,7 +23,7 @@ public class PermissionStatics {
         return permission;
     }
 
-    public static @Nullable Permission permissionFromString(@Nullable String permissionStr) {
-        return permissionFromString(permissionStr, PermissionDefault.OP);
+    public static @Nullable Permission newPermission(@Nullable String permissionStr) {
+        return newPermission(permissionStr, PermissionDefault.OP);
     }
 }

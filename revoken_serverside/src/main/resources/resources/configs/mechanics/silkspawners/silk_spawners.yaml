@@ -21,6 +21,19 @@ spawners:
     - "netherite_pickaxe"
   required-enchantments:
     - "silk_touch"
+  state-modifier:
+    apply: false
+    data: '
+      "BlockEntityTag":{
+         "Delay":20s,
+         "MaxNearbyEntities":6,
+         "MaxSpawnDelay":800,
+         "MinSpawnDelay":200,
+         "RequiredPlayerRange":16,
+         "SpawnCount":4,
+         "SpawnRange":4,
+      }
+    '
   item:
     name: "§fSpawner §e{entity}"
     lore: "§7Durabilita §r{durability}"

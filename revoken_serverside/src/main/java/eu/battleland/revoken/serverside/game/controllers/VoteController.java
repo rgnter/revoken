@@ -5,10 +5,13 @@ import eu.battleland.revoken.common.abstracted.AController;
 import eu.battleland.revoken.common.providers.api.ApiConnector;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.revoken.serverside.statics.PlaceholderStatics;
+import eu.battleland.revoken.serverside.providers.statics.PlaceholderStatics;
+import eu.battleland.revoken.serverside.providers.statics.TextStatics;
 import lombok.extern.log4j.Log4j2;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDateTime;
@@ -16,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Log4j2(topic = "Revoken - Vote Controller")
 public class VoteController extends AController<RevokenPlugin> {
@@ -76,25 +80,35 @@ public class VoteController extends AController<RevokenPlugin> {
         if (this.taskId != -1)
             Bukkit.getScheduler().cancelTask(this.taskId);
         this.taskId = Bukkit.getScheduler().scheduleAsyncRepeatingTask(getPlugin().instance(), () -> {
-            StringBuilder voteInfoStr = new StringBuilder();
 
-            Bukkit.getOnlinePlayers().forEach(player -> {
+            String statusStr = Bukkit.getOnlinePlayers().stream().map(player -> {
                 var ccData = ApiConnector.getHttpApiResponse("https://czech-craft.eu/api/server/battleland-eu/player/" + player.getName() + "/next_vote/");
                 if (ccData == null || !ccData.has("next_vote"))
-                    return;
+                    return "§7" + player.getName();
 
                 var nextVoteStr = ccData.get("next_vote").getAsString();
                 LocalDateTime nextVote = LocalDateTime.parse(nextVoteStr, this.ccDateFormat);
-                if (nextVote.isBefore(LocalDateTime.now())) {
-                    voteInfoStr.append("§a").append(player.getName()).append(" ");
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', PlaceholderStatics.askPapiForPlaceholders(this.rawCcReminder, player)));
+                boolean hasVoted = nextVote.isBefore(LocalDateTime.now());
+
+                if (hasVoted) {
+                    player.sendMessage(
+                            ComponentSerializer.parse(
+                                    GsonComponentSerializer.gson().serialize(
+                                            TextStatics.adventureMarkdown(PlaceholderStatics.askPapiForPlaceholders(this.rawCcReminder, player), null)
+                                    )
+                            )
+                    );
+                    return "§a" + player.getName();
                 } else
-                    voteInfoStr.append("§c").append(player.getName()).append(" ");
+                    return "§c" + player.getName();
 
-            });
+            }).collect(Collectors.joining(", "));
 
-            Bukkit.getConsoleSender().sendMessage("Can vote: " + voteInfoStr);
-        }, 40, this.updateTick);
+            if (!statusStr.isEmpty())
+                log.info("Vote status: {}", statusStr);
+            else
+                log.info("Vote status: §7Nobody online");
+        }, 80, this.updateTick);
 
     }
 

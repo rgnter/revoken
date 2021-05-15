@@ -1,10 +1,10 @@
-package eu.battleland.revoken.serverside.game.controllers.uxui;
+package eu.battleland.revoken.serverside.game.controllers.chat;
 
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AController;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.revoken.serverside.statics.PermissionStatics;
+import eu.battleland.revoken.serverside.providers.statics.PermissionStatics;
 import lombok.extern.log4j.Log4j2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -173,7 +173,7 @@ public class ChatController extends AController<RevokenPlugin> implements Listen
         // emotes
         this.emotesEnabled = config.getBool("chat.emoticons.enabled", false);
         if (this.emotesEnabled) {
-            this.emotesPermission = PermissionStatics.permissionFromString(config.getString("chat.emoticons.permission"));
+            this.emotesPermission = PermissionStatics.newPermission(config.getString("chat.emoticons.permission"));
             if (this.emotesPermission != null)
                 log.debug("Permission for emoticons: " + this.emotesPermission.getName());
 
@@ -187,7 +187,7 @@ public class ChatController extends AController<RevokenPlugin> implements Listen
                 String emote = sector.getString("emote");
 
                 // permission
-                Permission perm = PermissionStatics.permissionFromString(sector.getString("permission"));
+                Permission perm = PermissionStatics.newPermission(sector.getString("permission"));
 
                 // override indicator if set
                 String indicator = defaultEmojiIndicator;
@@ -205,7 +205,7 @@ public class ChatController extends AController<RevokenPlugin> implements Listen
         // mention
         this.mentionEnabled = config.getBool("chat.mention.enabled", false);
         if (this.mentionEnabled) {
-            this.mentionPermission = PermissionStatics.permissionFromString(config.getString("chat.mention.permission"));
+            this.mentionPermission = PermissionStatics.newPermission(config.getString("chat.mention.permission"));
             if (this.mentionPermission != null)
                 log.debug("Permission for mentions: " + this.mentionPermission.getName());
 

@@ -6,7 +6,7 @@ import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AController;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.revoken.serverside.statics.PlaceholderStatics;
+import eu.battleland.revoken.serverside.providers.statics.PlaceholderStatics;
 import lombok.extern.log4j.Log4j2;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

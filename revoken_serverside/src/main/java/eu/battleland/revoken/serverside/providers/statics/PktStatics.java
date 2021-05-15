@@ -1,4 +1,4 @@
-package eu.battleland.revoken.serverside.statics;
+package eu.battleland.revoken.serverside.providers.statics;
 
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;

@@ -15,3 +15,17 @@
 
 discord-webhook:
   webhook: ""
+
+block-state: '
+{
+  "BlockEntityTag":{
+    "Delay":20s,
+    "MaxNearbyEntities":6,
+    "MaxSpawnDelay":800,
+    "MinSpawnDelay":200,
+    "RequiredPlayerRange":16,
+    "SpawnCount":4,
+    "SpawnRange":4
+  }
+}
+'

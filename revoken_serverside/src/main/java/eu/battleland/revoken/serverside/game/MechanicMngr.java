@@ -3,18 +3,15 @@ package eu.battleland.revoken.serverside.game;
 import eu.battleland.revoken.common.abstracted.AMechanic;
 import eu.battleland.revoken.common.abstracted.AMngr;
 import eu.battleland.revoken.common.diagnostics.timings.Timer;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.AuxData;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.AuxCodec;
 import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.ex.CodecException;
 import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.SittingMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.items.ItemsMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.WearablesMechanic;
-import eu.battleland.revoken.serverside.game.mechanics.silkspawner.SilkSpawnersMechanic;
-import eu.battleland.revoken.serverside.statics.PktStatics;
+import eu.battleland.revoken.serverside.game.mechanics.spawners.SpawnersMechanic;
+import eu.battleland.revoken.serverside.providers.statics.PktStatics;
 
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -33,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Log4j2(topic = "Revoken - MechanicMngr")
 public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>> implements Listener {
@@ -105,7 +103,7 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
                     new WearablesMechanic(getPlugin()),
                     new ItemsMechanic(getPlugin()),
 
-                    new SilkSpawnersMechanic(getPlugin())
+                    new SpawnersMechanic(getPlugin())
             );
 
             log.info("Constructing and Initializing Mechanics");
@@ -156,7 +154,6 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
 
         });
 
-
         {
             Bukkit.getCommandMap().register("revoken", new Command("ride") {
                 @Override
@@ -193,9 +190,10 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
                         );
                     } else {
                         commandSender.sendMessage("§7http://battleland.eu/file/battleland.zip (48c9f5f6ab0416d8b05403cac7f12ff1bf767b59)");
-                        StringBuilder rpStatus = new StringBuilder();
-                        Bukkit.getOnlinePlayers().stream().filter(Player::hasResourcePack).map(Player::getName).forEach(playerName -> rpStatus.append(playerName).append(" "));
-                        commandSender.sendMessage(rpStatus.toString());
+
+                        commandSender.sendMessage(
+                                Bukkit.getOnlinePlayers().stream().filter(Player::hasResourcePack).map(Player::getName).collect(Collectors.joining(", "))
+                        );
                     }
 
                     return true;
@@ -332,14 +330,5 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
             });
         }
 
-        @Override
-        public Class<?> type() {
-            return Settings.class;
-        }
-
-        @Override
-        public ICodec instance() {
-            return new Settings();
-        }
     }
 }

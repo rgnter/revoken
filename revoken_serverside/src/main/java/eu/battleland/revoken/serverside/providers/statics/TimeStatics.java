@@ -1,4 +1,4 @@
-package eu.battleland.revoken.serverside.statics;
+package eu.battleland.revoken.serverside.providers.statics;
 
 import java.time.format.DateTimeFormatter;
 

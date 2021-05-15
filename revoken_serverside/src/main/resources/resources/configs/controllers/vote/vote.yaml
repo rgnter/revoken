@@ -16,11 +16,11 @@ vote-reminder:
   enabled: true
   vote-again-czechcraft:
     - " "
-    - "&e&lVote &8● &bPoď znova zahlasovať za náš server!"
+    - "<click:run_command:/vote>&e&lVote &8● &fKlikni sem a poď znova zahlasovať!</click>"
     - " "
   vote-again-craftlist:
     - " "
-    - "&e&lVote &8● &bPoď znova zahlasovať za náš server!"
+    - "<click:run_command:/vote>&e&lVote &8● &fKlikni sem a poď znova zahlasovať!</click>"
     - " "
   # In seconds
   update-time: 300

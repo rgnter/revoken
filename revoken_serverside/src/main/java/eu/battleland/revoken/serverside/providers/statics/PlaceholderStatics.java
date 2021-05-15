@@ -1,4 +1,4 @@
-package eu.battleland.revoken.serverside.statics;
+package eu.battleland.revoken.serverside.providers.statics;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;

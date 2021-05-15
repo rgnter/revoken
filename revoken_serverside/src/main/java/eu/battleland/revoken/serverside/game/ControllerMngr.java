@@ -7,7 +7,7 @@ import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.revoken.serverside.game.controllers.VoteController;
 import eu.battleland.revoken.serverside.game.controllers.security.AdminController;
 import eu.battleland.revoken.serverside.game.controllers.security.BattleRepController;
-import eu.battleland.revoken.serverside.game.controllers.uxui.ChatController;
+import eu.battleland.revoken.serverside.game.controllers.chat.ChatController;
 import eu.battleland.revoken.serverside.game.controllers.uxui.InterfaceController;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
