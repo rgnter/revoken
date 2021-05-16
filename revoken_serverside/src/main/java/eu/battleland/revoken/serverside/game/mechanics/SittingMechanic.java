@@ -1,4 +1,4 @@
-package eu.battleland.revoken.serverside.game.mechanics.gamechanger;
+package eu.battleland.revoken.serverside.game.mechanics;
 
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AMechanic;

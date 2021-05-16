@@ -3,13 +3,14 @@ package eu.battleland.revoken.serverside.game;
 import eu.battleland.revoken.common.abstracted.AMechanic;
 import eu.battleland.revoken.common.abstracted.AMngr;
 import eu.battleland.revoken.common.diagnostics.timings.Timer;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
+import eu.battleland.revoken.common.providers.storage.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.data.codec.meta.CodecKey;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.revoken.serverside.game.mechanics.gamechanger.SittingMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.SittingMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.items.ItemsMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.WearablesMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.magic.alchemy.AlchemyMechanic;
 import eu.battleland.revoken.serverside.game.mechanics.spawners.SpawnersMechanic;
 import eu.battleland.revoken.serverside.providers.statics.PktStatics;
 
@@ -103,7 +104,9 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
                     new WearablesMechanic(getPlugin()),
                     new ItemsMechanic(getPlugin()),
 
-                    new SpawnersMechanic(getPlugin())
+                    new SpawnersMechanic(getPlugin()),
+
+                    new AlchemyMechanic(getPlugin())
             );
 
             log.info("Constructing and Initializing Mechanics");

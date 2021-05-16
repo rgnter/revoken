@@ -10,8 +10,14 @@
 # Version:    ${version}
 # Build time: ${timestamp}
 # --
-# Report configuration
+# BattleSec configuration
 #
 
-discord-webhook:
-  webhook: ""
+disallowed:
+  materials:
+    - "bedrock"
+    - "barrier"
+    - "end_portal_frame"
+  item-names:
+    - "renit"
+    - "magická je tráva,"

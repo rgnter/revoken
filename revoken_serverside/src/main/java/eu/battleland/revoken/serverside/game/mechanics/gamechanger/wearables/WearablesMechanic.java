@@ -43,13 +43,12 @@ public class WearablesMechanic extends AMechanic<RevokenPlugin> implements Liste
 
     public final NamespacedKey WEARABLES_DATA_KEY = new NamespacedKey("battleland", "wearables");
 
-
+    @Getter
     private final WearablesAPI api;
     protected final Map<UUID, @Nullable Map<String, Pair<WearableEntity, Wearable>>> wardrobe = new ConcurrentHashMap<>();
 
     @Getter
     private @NotNull Optional<AStore> configuration = Optional.empty();
-
 
 
     /**

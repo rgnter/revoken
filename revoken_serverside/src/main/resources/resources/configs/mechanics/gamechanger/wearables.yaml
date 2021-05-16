@@ -15,11 +15,15 @@
 
 
 wearables:
+  'backpack':
+    impl: DummyWearable
+    model_data: 1
+    base_material: POPPY
   'fully-qualified-name':
     impl: DummyWearable
-    model_data: 123
+    model_data: 2
     base_material: POPPY
   'crossed-swords':
     impl: DummyWearable
-    model_data: 124
+    model_data: 3
     base_material: POPPY

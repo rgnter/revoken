@@ -8,6 +8,8 @@ import eu.battleland.revoken.serverside.game.controllers.VoteController;
 import eu.battleland.revoken.serverside.game.controllers.security.AdminController;
 import eu.battleland.revoken.serverside.game.controllers.security.BattleRepController;
 import eu.battleland.revoken.serverside.game.controllers.chat.ChatController;
+import eu.battleland.revoken.serverside.game.controllers.security.BattleSecController;
+import eu.battleland.revoken.serverside.game.controllers.security.SafeguardController;
 import eu.battleland.revoken.serverside.game.controllers.uxui.InterfaceController;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +35,9 @@ public class ControllerMngr extends AMngr<RevokenPlugin, AController<RevokenPlug
                 new InterfaceController(getPlugin()),
                 new ChatController(getPlugin()),
                 new VoteController(getPlugin()),
+
+                new SafeguardController(getPlugin()),
+                new BattleSecController(getPlugin()),
                 new BattleRepController(getPlugin()),
                 new AdminController(getPlugin())
         );

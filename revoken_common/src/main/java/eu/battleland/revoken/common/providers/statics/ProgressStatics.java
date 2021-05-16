@@ -1,7 +1,7 @@
 package eu.battleland.revoken.common.providers.statics;
 
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
+import eu.battleland.revoken.common.providers.storage.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.data.codec.meta.CodecKey;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 

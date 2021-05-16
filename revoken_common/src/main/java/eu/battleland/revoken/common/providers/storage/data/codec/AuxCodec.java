@@ -1,21 +1,24 @@
-package eu.battleland.revoken.common.providers.storage.flatfile.data.codec;
+package eu.battleland.revoken.common.providers.storage.data.codec;
 
-import eu.battleland.revoken.common.providers.storage.flatfile.data.AuxData;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.CommonClassMapper;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.CommonTransformer;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.ex.CodecException;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecField;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecValue;
+import eu.battleland.revoken.common.providers.storage.data.AuxData;
+import eu.battleland.revoken.common.providers.storage.data.codec.ex.ClassCodecException;
+import eu.battleland.revoken.common.providers.storage.data.codec.impl.CommonClassMapper;
+import eu.battleland.revoken.common.providers.storage.data.codec.impl.CommonTransformer;
+import eu.battleland.revoken.common.providers.storage.data.codec.impl.ex.CodecException;
+import eu.battleland.revoken.common.providers.storage.data.codec.meta.CodecField;
+import eu.battleland.revoken.common.providers.storage.data.codec.meta.CodecKey;
+import eu.battleland.revoken.common.providers.storage.data.codec.meta.CodecValue;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.security.spec.EncodedKeySpec;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Provides codec operations on classes.
+ */
 @Log4j2(topic = "AuxCodec")
 public class AuxCodec {
 
@@ -23,13 +26,20 @@ public class AuxCodec {
     public static final Transformer COMMON_TRANSFORMER = new CommonTransformer();
 
     /***
-     *
+     * Encodes object
      * @param toEncode Object to encode
-     * @param data Data
+     * @param data     Data to which encoded class will be written.
      */
-    public static void encode(@NotNull ICodec toEncode, @NotNull AuxData data) throws Exception {
+    public static void encodeClass(@NotNull ICodec toEncode, @NotNull AuxData data) throws ClassCodecException {
+        final var transformer = toEncode.defaultTransformer();
+        if(transformer == null)
+            throw new ClassCodecException("Transformer is not present", toEncode);
+        final var mapper = toEncode.defaultClassMapper();
+        if(mapper == null)
+            throw new ClassCodecException("ClassMapper is not present", toEncode);
+
         for (final Field field :
-                toEncode.defaultClassMapper().getClassCodecFields(toEncode.type(), toEncode)
+                mapper.getClassCodecFields(toEncode.type(), toEncode)
                         .filter(field -> !Modifier.isTransient(field.getModifiers()))
                         .filter(field -> field.isAnnotationPresent(CodecKey.class)).collect(Collectors.toList())) {
             field.setAccessible(true);
@@ -49,27 +59,25 @@ public class AuxCodec {
                         .value(cVal)
                         .build();
 
-                toEncode.defaultTransformer().encode(cField, data);
+                transformer.encode(cField, data);
             } catch (Exception e) {
-                throw new Exception("Couldn't decode class " + toEncode.type().getName() + ": " + e.getMessage(), e);
+                throw new ClassCodecException(toEncode, e);
             }
         }
     }
 
-    /**
-     * Decodes data from {@code data} object, to this object
-     *
-     * @param data Data
+    /***
+     * Decodes object
+     * @param toDecode Object to decode. (This will modify the object codec members)
+     * @param data     Data from which decoded class will be read.
      */
-    public static void decode(@NotNull ICodec toDecode, @NotNull AuxData data) throws Exception {
+    public static void decode(@NotNull ICodec toDecode, @NotNull AuxData data) throws ClassCodecException {
         final var transformer = toDecode.defaultTransformer();
         if(transformer == null)
-            throw new Exception("Transformer not present");
+            throw new ClassCodecException("Transformer is not present", toDecode);
         final var mapper = toDecode.defaultClassMapper();
         if(mapper == null)
-            throw new Exception("Mapper not present");
-        if(data == null)
-            throw new Exception("Data is null");
+            throw new ClassCodecException("ClassMapper is not present", toDecode);
 
         for (final Field field :
                 mapper.getClassCodecFields(toDecode.type(), toDecode)
@@ -95,7 +103,7 @@ public class AuxCodec {
 
                 field.set(toDecode, cField.getValue().getValue());
             } catch (Exception e) {
-                throw new Exception("Couldn't decode class " + toDecode.type().getName() + ": " + e.getMessage(), e);
+                throw new ClassCodecException(toDecode, e);
             }
         }
     }

@@ -1,14 +1,13 @@
-package eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl;
+package eu.battleland.revoken.common.providers.storage.data.codec.impl;
 
-import eu.battleland.revoken.common.providers.storage.flatfile.data.AuxData;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.AuxCodec;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.ex.CodecException;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecField;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecValue;
+import eu.battleland.revoken.common.providers.storage.data.AuxData;
+import eu.battleland.revoken.common.providers.storage.data.codec.AuxCodec;
+import eu.battleland.revoken.common.providers.storage.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.data.codec.impl.ex.CodecException;
+import eu.battleland.revoken.common.providers.storage.data.codec.meta.CodecField;
 import eu.battleland.revoken.common.util.ThrowingBiFunction;
 import eu.battleland.revoken.common.util.ThrowingFunction;
+import lombok.Getter;
 import org.bspfsystems.yamlconfiguration.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +16,7 @@ import java.util.Map;
 
 public class CommonTransformer extends AuxCodec.Transformer {
 
-
+    @Getter
     public final Map<Class<?>, ThrowingFunction<Object, Object, Exception>> encodeTransformers = new HashMap<>() {{
         put(Byte.class, Object::toString);
         put(byte.class, get(Byte.class));
@@ -39,7 +38,7 @@ public class CommonTransformer extends AuxCodec.Transformer {
 
         put(ICodec.class, (source) -> {
             final var target = (ICodec) source;
-            final var dataType = target.dataType();
+            final var dataType = target.dataAdapterType();
             final AuxData data = dataType.get().apply(null);
             data.encode(target);
 
@@ -47,6 +46,7 @@ public class CommonTransformer extends AuxCodec.Transformer {
         });
     }};
 
+    @Getter
     public final Map<Class<?>, ThrowingBiFunction<Object, Object, Object, Exception>> decodeTransformers = new HashMap<>() {{
 
         put(Byte.class, (origin, source) -> {
@@ -101,7 +101,7 @@ public class CommonTransformer extends AuxCodec.Transformer {
 
         put(ICodec.class, (origin, source) -> {
             final var target = (ICodec) origin;
-            final var dataType = target.dataType();
+            final var dataType = target.dataAdapterType();
 
             AuxData data;
             if(dataType.isParsable()) {
@@ -158,7 +158,7 @@ public class CommonTransformer extends AuxCodec.Transformer {
                 throw new CodecException("Specify default value (transformer can not deduce class fields of specified codec)", codecField);
 
             // is source parsable or data
-            if(!((ICodec) value).dataType().isParsable())
+            if(!((ICodec) value).dataAdapterType().isParsable())
                 source = data.getSector(key);
             else
                 source = data.getString(key);

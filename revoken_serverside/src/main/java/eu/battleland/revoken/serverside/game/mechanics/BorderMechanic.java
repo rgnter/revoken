@@ -1,4 +1,4 @@
-package eu.battleland.revoken.serverside.game.mechanics.sexyborder;
+package eu.battleland.revoken.serverside.game.mechanics;
 
 import eu.battleland.revoken.common.abstracted.AMechanic;
 import eu.battleland.revoken.serverside.RevokenPlugin;
@@ -13,9 +13,9 @@ import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-public class SexyBorder extends AMechanic<RevokenPlugin> implements Listener {
+public class BorderMechanic extends AMechanic<RevokenPlugin> implements Listener {
 
-    public SexyBorder(@NotNull RevokenPlugin plugin) {
+    public BorderMechanic(@NotNull RevokenPlugin plugin) {
         super(plugin);
     }
 
@@ -49,14 +49,10 @@ public class SexyBorder extends AMechanic<RevokenPlugin> implements Listener {
         Vector centerVec = new Vector(-468, 80, 486);
         Vector playerVec = event.getTo().toVector();
 
-        // distance on X and Z
+        // distance between XZ coords
         if (Math.sqrt(NumberConversions.square(centerVec.getX() - playerVec.getX())
                 + NumberConversions.square(centerVec.getZ() - playerVec.getZ())) > 40) {
-            System.out.println("Outside!");
-
-
-            Vector direction = centerVec.subtract(playerVec.midpoint(centerVec)).normalize(); //není to stejne jako u me?
-            System.out.println(direction);
+            Vector direction = centerVec.subtract(playerVec.midpoint(centerVec)).normalize();
             event.getPlayer().setVelocity(direction.multiply(2).setY(0.1));
         }
     }

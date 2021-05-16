@@ -23,9 +23,9 @@ public abstract class AMechanic<T> implements IComponent {
     private boolean tickableAsync = false;
 
     /**
-     * Constructor requiring RevokenPlugin instance
+     * Constructor accepting {@link Revoken} instance
      *
-     * @param plugin Revoken Plugin
+     * @param plugin Revoken instance
      */
     public AMechanic(@NotNull Revoken<T> plugin) {
         this.plugin = plugin;

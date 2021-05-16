@@ -1,7 +1,10 @@
-package eu.battleland.revoken.common.providers.storage.flatfile.data.codec;
+package eu.battleland.revoken.common.providers.storage.data.codec;
 
-import eu.battleland.revoken.common.providers.storage.flatfile.data.AuxData;
+import eu.battleland.revoken.common.providers.storage.data.AuxData;
 
+/**
+ * Represents class which is able to be encoded/decoded by {@link AuxCodec}
+ */
 public interface ICodec {
 
     /**
@@ -26,9 +29,9 @@ public interface ICodec {
     }
 
     /**
-     * @return Default codec data format
+     * @return Default codec data adapter. Used only for decode operations.
      */
-    default AuxData.Type dataType() {
-        return AuxData.Type.YAML;
+    default AuxData.TypeAdapter dataAdapterType() {
+        return AuxData.TypeAdapter.YAML;
     }
 }

@@ -1,6 +1,6 @@
-package eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl;
+package eu.battleland.revoken.common.providers.storage.data.codec.impl;
 
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.AuxCodec;
+import eu.battleland.revoken.common.providers.storage.data.codec.AuxCodec;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;

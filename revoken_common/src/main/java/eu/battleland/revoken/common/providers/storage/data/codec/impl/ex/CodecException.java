@@ -1,13 +1,7 @@
-package eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.ex;
+package eu.battleland.revoken.common.providers.storage.data.codec.impl.ex;
 
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecField;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecValue;
-import lombok.Builder;
+import eu.battleland.revoken.common.providers.storage.data.codec.meta.CodecField;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.lang.reflect.Field;
 
 public class CodecException extends Exception {
 

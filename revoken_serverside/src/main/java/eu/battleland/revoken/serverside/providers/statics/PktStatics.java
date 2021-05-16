@@ -86,7 +86,7 @@ public class PktStatics {
     /**
      * Creates particle packet
      *
-     * @param particle        Particle type from net.minecraft.server.v1_16_R1.Particles
+     * @param particle        Particle typeAdapter from net.minecraft.server.v1_16_R1.Particles
      * @param overrideLimiter Override limiter
      * @param x               World pos X
      * @param y               World pos Y
@@ -105,7 +105,7 @@ public class PktStatics {
     /**
      * Creates particle packet
      *
-     * @param particle        Particle type from net.minecraft.server.v1_16_R1.Particles
+     * @param particle        Particle typeAdapter from net.minecraft.server.v1_16_R1.Particles
      * @param overrideLimiter Override limiter
      * @param loc             World pos vector
      * @param offset          Offset vector

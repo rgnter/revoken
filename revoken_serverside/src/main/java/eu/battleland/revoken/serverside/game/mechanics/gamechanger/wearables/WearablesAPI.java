@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import xyz.rgnt.mth.tuples.Pair;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -114,6 +116,16 @@ public class WearablesAPI {
     }
 
     /**
+     * Returns all wearables from player.
+     *
+     * @param player Player
+     * @return Optional map
+     */
+    public Map<String, Pair<WearableEntity, Wearable>> getAllWearables(@NotNull Player player) {
+        return this.wearablesMechanic.wardrobe.get(player.getUniqueId());
+    }
+
+    /**
      *
      * @param player Player
      * @return boolean true if player has wearables, false otherwise
@@ -121,5 +133,7 @@ public class WearablesAPI {
     public boolean hasWearable(@NotNull Player player) {
         return this.wearablesMechanic.wardrobe.containsKey(player.getUniqueId());
     }
+
+
 
 }

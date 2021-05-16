@@ -14,7 +14,7 @@ public abstract class AMngr<T, X extends IComponent> implements IComponent {
     private final Revoken<T> plugin;
 
     @Getter
-    private final ConcurrentHashMap<Class<X>, X> registeredComponents = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<? extends X>, X> registeredComponents = new ConcurrentHashMap<>();
 
     /**
      * Default constructor for Manager
@@ -41,7 +41,7 @@ public abstract class AMngr<T, X extends IComponent> implements IComponent {
     public abstract void reload();
 
 
-    public void callForComponents(@NotNull BiConsumer<Class<X>, X> call) {
+    public void callForComponents(@NotNull BiConsumer<Class<? extends X>, X> call) {
         this.registeredComponents.forEach(call);
     }
 
@@ -60,7 +60,7 @@ public abstract class AMngr<T, X extends IComponent> implements IComponent {
         this.registeredComponents.remove((Class<X>) component.getClass());
     }
 
-    public X obtainComponent(@NotNull Class<X> clazz) {
+    public X obtainComponent(@NotNull Class<? extends X> clazz) {
         return this.registeredComponents.get(clazz);
     }
 

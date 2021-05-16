@@ -1,11 +1,11 @@
-package eu.battleland.revoken.common.providers.storage.flatfile.data;
+package eu.battleland.revoken.common.providers.storage.data;
 
 import com.google.gson.*;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.AuxCodec;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.impl.ex.CodecException;
+import eu.battleland.revoken.common.providers.storage.data.codec.AuxCodec;
+import eu.battleland.revoken.common.providers.storage.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.data.codec.impl.ex.CodecException;
 import eu.battleland.revoken.common.util.ThrowingFunction;
 import lombok.Setter;
 import org.bspfsystems.yamlconfiguration.configuration.ConfigurationSection;
@@ -17,24 +17,33 @@ import java.io.StringReader;
 import java.util.*;
 
 /**
- * Provides functionality to easily work with different types of storage formats
+ * Provides common interface for all types of data implementations
  */
 public abstract class AuxData {
 
     /**
-     *
+     * Provides adapters for all data implementations
      */
-    public static enum Type {
-        JSON((obj) -> {
-            if(obj != null)
-                return AuxData.fromJson((JsonObject) obj);
+    public static enum TypeAdapter {
+        /**
+         * Adapter type that is able to cast source to JSON data implementation.
+         */
+        JSON((source) -> {
+            if(source != null)
+                return AuxData.fromJson((JsonObject) source);
             return AuxData.fromEmptyJson();
         }),
-        YAML((obj) -> {
-            if(obj != null)
-                return AuxData.fromYaml((YamlConfiguration) obj);
+        /**
+         * Adapter type that is able to cast source to YAML data implementation.
+         */
+        YAML((source) -> {
+            if(source != null)
+                return AuxData.fromYaml((YamlConfiguration) source);
             return AuxData.fromEmptyYaml();
         }),
+        /**
+         * Type adapter which is able to parse source to JSON data implementation
+         */
         PARSABLE_JSON((source) -> {
             if(source == null)
                 return JSON.get().apply(null);
@@ -47,6 +56,9 @@ public abstract class AuxData {
                 throw new Exception("Failed to parse json: " + x.getMessage(), x);
             }
         }),
+        /**
+         * Type adapter which is able to parse source to YAML data implementation
+         */
         PARSABLE_YAML((source) -> {
             if(source == null)
                 return YAML.get().apply(null);
@@ -60,19 +72,36 @@ public abstract class AuxData {
             }
         });
 
+        /**
+         * Adapter function
+         */
         @Setter
-        private ThrowingFunction<Object, AuxData, Exception> dataGenerator;
+        private ThrowingFunction<Object, AuxData, Exception> adapter;
 
-        private Type(ThrowingFunction<Object, AuxData, Exception> data) {
-            this.dataGenerator = data;
+        private TypeAdapter(ThrowingFunction<Object, AuxData, Exception> data) {
+            this.adapter = data;
         }
 
+        /**
+         * @return true if adapter treats source as parsable
+         */
         public boolean isParsable() {
             return isParsable(this);
         }
 
-        public static boolean isParsable(@NotNull Type type) {
-            switch (type) {
+        /**
+         * @return true if adapter treats source as castable
+         */
+        public boolean isCastable() {
+            return isCastable(this);
+        }
+
+        /**
+         * @param typeAdapter TypeAdapter instance
+         * @return true if adapter treats source as parsable
+         */
+        public static boolean isParsable(@NotNull AuxData.TypeAdapter typeAdapter) {
+            switch (typeAdapter) {
                 case PARSABLE_JSON:
                 case PARSABLE_YAML:
                     return true;
@@ -80,8 +109,25 @@ public abstract class AuxData {
             return false;
         }
 
+        /**
+         * @param typeAdapter TypeAdapter instance
+         * @return true if adapter treats source as castable
+         */
+        public static boolean isCastable(@NotNull AuxData.TypeAdapter typeAdapter) {
+            switch (typeAdapter) {
+                case JSON:
+                case YAML:
+                    return true;
+            }
+
+            return false;
+        }
+
+        /**
+         * @return data adapter
+         */
         public ThrowingFunction<Object, AuxData, Exception> get() {
-            return dataGenerator;
+            return adapter;
         }
     }
 
@@ -512,7 +558,7 @@ public abstract class AuxData {
      * @throws CodecException
      */
     public void encode(@NotNull ICodec codec) throws Exception {
-        AuxCodec.encode(codec, this);
+        AuxCodec.encodeClass(codec, this);
     }
 
 

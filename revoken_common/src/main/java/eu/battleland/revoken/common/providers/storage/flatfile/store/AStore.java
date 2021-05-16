@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import eu.battleland.revoken.common.Revoken;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.AuxData;
+import eu.battleland.revoken.common.providers.storage.data.AuxData;
 import lombok.Getter;
 import org.bspfsystems.yamlconfiguration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;

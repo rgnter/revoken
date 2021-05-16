@@ -3,18 +3,22 @@ package eu.battleland.revoken.serverside;
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.diagnostics.timings.Timer;
 import eu.battleland.revoken.common.providers.storage.flatfile.StorageProvider;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.ICodec;
-import eu.battleland.revoken.common.providers.storage.flatfile.data.codec.meta.CodecKey;
+import eu.battleland.revoken.common.providers.storage.data.codec.ICodec;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.game.ControllerMngr;
 import eu.battleland.revoken.serverside.game.MechanicMngr;
-import eu.battleland.revoken.serverside.providers.data.codecs.BlockStateCodec;
+import eu.battleland.revoken.serverside.mcdev.OverridenPlayerConnection;
+import eu.battleland.revoken.serverside.providers.statics.PktStatics;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,10 +28,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Log4j2(topic = "Revoken")
-public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> {
+public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin>, Listener {
 
     @Getter
     public static RevokenPlugin instance;
+
+   // @Getter
+  //  public static Optional<PaperCommandManager<CommandSender>> commandManager = Optional.empty();
 
     /**
      * Providers
@@ -53,6 +60,9 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
     @Getter
     private @NotNull Optional<AStore> pluginConfig = Optional.empty();
 
+    public RevokenPlugin() {
+
+    }
 
     @Override
     public void onLoad() {
@@ -74,6 +84,23 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
     @Override
     public void onEnable() {
         super.onEnable();
+        Bukkit.getPluginManager().registerEvents(this, this);
+        /*try {
+            commandManager = Optional.of(new PaperCommandManager<>(
+                    instance,
+                    CommandExecutionCoordinator.simpleCoordinator(),
+                    Function.identity(),
+                    Function.identity()
+            ));
+        } catch (Exception e) {
+            log.error("Failed to make CommandManager", e);
+        }
+        commandManager.ifPresent((manager) -> {
+            if (manager.queryCapability(CloudBukkitCapabilities.BRIGADIER))
+                manager.registerBrigadier();
+            if (manager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION))
+                manager.registerAsynchronousCompletions();
+        });*/
 
         Timer timer = Timer.timings().start();
         log.info("Initializing Revoken plugin...");
@@ -97,7 +124,7 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
                     } else if (args[0].equalsIgnoreCase("debug")) {
                         sender.sendMessage((debug = !debug) ? "§aDebug is now enabled" : "§cDebug is now disabled");
                     } else {
-                        sender.sendMessage("§cI have no idea what you are up to, but I can't judge. rtrd.");
+                        sender.sendMessage("§c?");
                     }
                     return true;
                 }
@@ -134,8 +161,6 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
 
 
     class Settings implements ICodec {
-        @CodecKey("block-state")
-        BlockStateCodec test = new BlockStateCodec();
 
         private void setup() {
             RevokenPlugin.this.pluginConfig.or(() -> {
@@ -154,13 +179,6 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin> 
                 }
 
                 final var data = config.getData();
-
-                try {
-                    data.decode(this);
-                    System.out.println("Delay: " + this.test.delay);
-                } catch (Exception e) {
-                    log.error("Couldn't decode setting: {}", e.getMessage(), isDebug() ? e : null);
-                }
                 log.info("Loaded settings");
             });
         }
