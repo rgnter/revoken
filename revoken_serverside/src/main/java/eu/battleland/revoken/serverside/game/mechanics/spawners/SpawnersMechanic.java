@@ -94,7 +94,7 @@ public class SpawnersMechanic extends AMechanic<RevokenPlugin> implements Listen
                 final var itemStack = getSpawnerItemStack(Material.SPAWNER, entity, 3);
                 itemStack.setAmount(spawnerCount);
                 target.getInventory().addItem(itemStack);
-                commandSender.sendMessage("§aSpawner typeAdapter '" + entityName + "'(" + spawnerCount + "x) given to player '" + targetName + "'");
+                commandSender.sendMessage("§aSpawner type '" + entityName + "'(" + spawnerCount + "x) given to player '" + targetName + "'");
                 return true;
             }
         });
@@ -132,12 +132,12 @@ public class SpawnersMechanic extends AMechanic<RevokenPlugin> implements Listen
         final PersistentDataContainer spawnerData = spawnerState.getPersistentDataContainer();
 
 
-        final EntityType typeAdapter = spawnerState.getSpawnedType();
+        final EntityType type = spawnerState.getSpawnedType();
         final int durability = spawnerData.getOrDefault(SPAWNER_DURABILITY_DATA_KEY, PersistentDataType.INTEGER, settings.defaultSpawnerDurability);
         Bukkit.getScheduler().runTaskAsynchronously(getPlugin().instance(), () -> {
-            log.info("Player '{}' broke spawner of typeAdapter '{}' with durability of {} at {} {} {}[{}]",
+            log.info("Player '{}' broke spawner of type '{}' with durability of {} at {} {} {}[{}]",
                     event.getPlayer().getName(),
-                    typeAdapter.name(), durability - 1,
+                    type.name(), durability - 1,
                     location.getBlockX(),
                     location.getBlockY(),
                     location.getBlockZ(),
@@ -150,7 +150,7 @@ public class SpawnersMechanic extends AMechanic<RevokenPlugin> implements Listen
                 blockState.getLocation(),
                 getSpawnerItemStack(
                         blockState.getType(),
-                        typeAdapter,
+                        type,
                         bypass ? durability : durability - 1
                 ));
     }
@@ -167,7 +167,7 @@ public class SpawnersMechanic extends AMechanic<RevokenPlugin> implements Listen
         final var itemData = itemMeta.getPersistentDataContainer();
         final var location = event.getBlock().getLocation();
 
-        // get spawner typeAdapter
+        // get spawner type
         EntityType type = null;
         final String typeName = itemData.get(SPAWNER_TYPE_DATA_KEY, PersistentDataType.STRING);
 
@@ -214,7 +214,7 @@ public class SpawnersMechanic extends AMechanic<RevokenPlugin> implements Listen
         spawnerData.set(SPAWNER_DURABILITY_DATA_KEY, PersistentDataType.INTEGER, durability);
         spawnerState.update(true, false);
 
-        log.info("Player '{}' placed spawner of typeAdapter '{}' with durability of {} at {} {} {}[{}]",
+        log.info("Player '{}' placed spawner of type '{}' with durability of {} at {} {} {}[{}]",
                 event.getPlayer().getName(),
                 type.name(), durability,
                 location.getBlockX(),
