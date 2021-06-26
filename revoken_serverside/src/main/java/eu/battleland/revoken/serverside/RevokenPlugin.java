@@ -2,8 +2,8 @@ package eu.battleland.revoken.serverside;
 
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.diagnostics.timings.Timer;
-import eu.battleland.revoken.common.providers.storage.flatfile.StorageProvider;
 import eu.battleland.revoken.common.providers.storage.data.codec.ICodec;
+import eu.battleland.revoken.common.providers.storage.flatfile.StorageProvider;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.game.ControllerMngr;
 import eu.battleland.revoken.serverside.game.MechanicMngr;
@@ -33,8 +33,8 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin>,
     @Getter
     public static RevokenPlugin instance;
 
-   // @Getter
-  //  public static Optional<PaperCommandManager<CommandSender>> commandManager = Optional.empty();
+   // @Getter/
+    //  public static Optional<PaperCommandManager<CommandSender>> commandManager = Optional.empty();
 
     /**
      * Providers
@@ -85,22 +85,6 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin>,
     public void onEnable() {
         super.onEnable();
         Bukkit.getPluginManager().registerEvents(this, this);
-        /*try {
-            commandManager = Optional.of(new PaperCommandManager<>(
-                    instance,
-                    CommandExecutionCoordinator.simpleCoordinator(),
-                    Function.identity(),
-                    Function.identity()
-            ));
-        } catch (Exception e) {
-            log.error("Failed to make CommandManager", e);
-        }
-        commandManager.ifPresent((manager) -> {
-            if (manager.queryCapability(CloudBukkitCapabilities.BRIGADIER))
-                manager.registerBrigadier();
-            if (manager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION))
-                manager.registerAsynchronousCompletions();
-        });*/
 
         Timer timer = Timer.timings().start();
         log.info("Initializing Revoken plugin...");
@@ -159,6 +143,12 @@ public class RevokenPlugin extends JavaPlugin implements Revoken<RevokenPlugin>,
         log.info("Terminating Revoken plugin in §e{}§rms", String.format("%.3f", timer.stop().resultMilli()));
     }
 
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void handleOnJoin(PlayerJoinEvent event) {
+        final var entityPlayer = PktStatics.getNmsPlayer(event.getPlayer());
+        entityPlayer.networkManager.setPacketListener(new OverridenPlayerConnection(this, entityPlayer.getMinecraftServer(), entityPlayer.networkManager, entityPlayer));
+    }
 
     class Settings implements ICodec {
 

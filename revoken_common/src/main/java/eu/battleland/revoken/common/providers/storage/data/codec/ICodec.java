@@ -1,6 +1,8 @@
 package eu.battleland.revoken.common.providers.storage.data.codec;
 
 import eu.battleland.revoken.common.providers.storage.data.AuxData;
+import org.jetbrains.annotations.NotNull;
+
 
 /**
  * Represents class which is able to be encoded/decoded by {@link AuxCodec}
@@ -34,4 +36,7 @@ public interface ICodec {
     default AuxData.TypeAdapter dataAdapterType() {
         return AuxData.TypeAdapter.YAML;
     }
+
+    default void onDecode(@NotNull AuxData source) throws Exception {}
+    default void onEncode(@NotNull AuxData source) throws Exception {}
 }

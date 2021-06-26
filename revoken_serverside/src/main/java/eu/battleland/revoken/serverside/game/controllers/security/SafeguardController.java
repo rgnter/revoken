@@ -1,12 +1,10 @@
 package eu.battleland.revoken.serverside.game.controllers.security;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AController;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import net.minecraft.server.v1_16_R3.CommandDispatcher;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -39,13 +37,6 @@ public class SafeguardController extends AController<RevokenPlugin> {
 
         final var commandDispatch =
                 ((CraftServer) Bukkit.getServer()).getServer().getCommandDispatcher().a();
-
-        commandDispatch.register(CommandDispatcher.a("test")
-                .then(CommandDispatcher.a("test", StringArgumentType.greedyString()).executes(command -> {
-            String arg = command.getArgument("test", String.class);
-            command.getSource().getBukkitEntity().sendMessage(arg);
-            return 1;
-        })));
 
     }
 

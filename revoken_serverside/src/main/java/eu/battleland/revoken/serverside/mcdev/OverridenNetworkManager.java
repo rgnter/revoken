@@ -1,7 +1,8 @@
 package eu.battleland.revoken.serverside.mcdev;
 
-import net.minecraft.server.v1_16_R3.EnumProtocolDirection;
-import net.minecraft.server.v1_16_R3.NetworkManager;
+
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.protocol.EnumProtocolDirection;
 
 public class OverridenNetworkManager extends NetworkManager {
 

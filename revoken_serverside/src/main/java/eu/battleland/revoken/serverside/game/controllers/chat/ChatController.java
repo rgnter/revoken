@@ -110,7 +110,6 @@ public class ChatController extends AController<RevokenPlugin> implements Listen
         this.permissionColors.forEach((permission, color) -> {
             if (sender.hasPermission(permission)) {
                 colorMod.append(color);
-                System.out.println("Using: " + permission);
             }
         });
         message = ChatColor.translateAlternateColorCodes('&', colorMod.toString()) + message;
@@ -158,6 +157,29 @@ public class ChatController extends AController<RevokenPlugin> implements Listen
             event.setFormat(format.substring(0, chatSeparatorIndex) + message);
         else
             event.setMessage(message);
+    }
+
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void handleChatEvent(AsyncPlayerChatEvent event) {
+/*
+        final String message;
+        if (!this.hasChatManager)
+            return;
+        event.setCancelled(true);
+        message = event.getFormat();
+
+        final var pkt = new PacketPlayOutChat(
+                TextStatics.adventureMarkdownNative(message, null),
+                ChatMessageType.CHAT,
+                event.getPlayer().getUniqueId()
+        );
+
+        event.getRecipients().stream()
+                .map(PktStatics::getNmsPlayer)
+                .forEach(player ->
+                        player.playerConnection.sendPacket(pkt)
+                );*/
     }
 
     public void loadSettings() {
@@ -243,4 +265,6 @@ public class ChatController extends AController<RevokenPlugin> implements Listen
         }
 
     }
+
+
 }

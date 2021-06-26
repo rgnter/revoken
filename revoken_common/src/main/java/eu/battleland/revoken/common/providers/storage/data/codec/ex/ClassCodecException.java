@@ -3,8 +3,6 @@ package eu.battleland.revoken.common.providers.storage.data.codec.ex;
 import eu.battleland.revoken.common.providers.storage.data.codec.ICodec;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Member;
-
 public class ClassCodecException extends Exception {
 
     private ICodec codec;

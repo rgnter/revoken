@@ -1,12 +1,27 @@
 package eu.battleland.revoken.serverside.providers.statics;
 
-import net.minecraft.server.v1_16_R3.*;
+
+import net.minecraft.core.BlockPosition;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.PacketListenerPlayOut;
+import net.minecraft.network.protocol.game.PacketPlayOutEntity;
+import net.minecraft.network.protocol.game.PacketPlayOutWorldParticles;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.PlayerChunkMap;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityLiving;
+import net.minecraft.world.entity.decoration.EntityArmorStand;
+import net.minecraft.world.level.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_16_R3.util.CraftVector;
+import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_17_R1.util.CraftVector;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +94,7 @@ public class PktStatics {
                 .filter(player -> !except.contains(player.getUniqueId()))
                 .map(PktStatics::getNmsPlayer)
                 .forEach(player -> {
-                    player.playerConnection.sendPacket(pkt);
+                    player.b.sendPacket(pkt);
                 });
     }
 
@@ -137,12 +152,19 @@ public class PktStatics {
 
     /**
      * @param player Bukkit player
-     * @return NMS World
+     * @return BlockPosition
      */
     public static @NotNull BlockPosition getBlockLocation(@NotNull Player player) {
         return new BlockPosition(CraftVector.toNMS(player.getLocation().toVector()));
     }
 
+    /**
+     * @param block Bukkit block
+     * @return BlockPosition
+     */
+    public static @NotNull BlockPosition getBlockLocation(@NotNull Block block) {
+        return new BlockPosition(CraftVector.toNMS(block.getLocation().toVector()));
+    }
     /**
      * @return Server
      */
@@ -151,7 +173,7 @@ public class PktStatics {
     }
 
     public static @NotNull PlayerChunkMap getPlayerChunkMap(@NotNull World world) {
-        return ((WorldServer) world).getChunkProvider().playerChunkMap;
+        return ((WorldServer) world).getChunkProvider().a;
     }
 
     /**
@@ -159,8 +181,8 @@ public class PktStatics {
      * @param playerToHide Player that will be hidden to player.
      */
     public static void untrackPlayerFor(@NotNull EntityPlayer player, @NotNull EntityPlayer playerToHide) {
-        PlayerChunkMap playerChunkMap = ((WorldServer) player.world).getChunkProvider().playerChunkMap;
-        PlayerChunkMap.EntityTracker tracker = playerChunkMap.trackedEntities.get(player.getId());
+        PlayerChunkMap playerChunkMap = ((WorldServer) player.getWorld()).getChunkProvider().a;
+        PlayerChunkMap.EntityTracker tracker = playerChunkMap.G.get(player.getId());
         if (tracker != null)
             tracker.clear(playerToHide);
     }
@@ -170,8 +192,8 @@ public class PktStatics {
      * @param playerToShow Player that will be shown to player.
      */
     public static void trackPlayerFor(@NotNull EntityPlayer player, @NotNull EntityPlayer playerToShow) {
-        PlayerChunkMap playerChunkMap = ((WorldServer) player.world).getChunkProvider().playerChunkMap;
-        PlayerChunkMap.EntityTracker tracker = playerChunkMap.trackedEntities.get(player.getId());
+        PlayerChunkMap playerChunkMap = ((WorldServer) player.getWorld()).getChunkProvider().a;
+        PlayerChunkMap.EntityTracker tracker = playerChunkMap.G.get(player.getId());
         if (tracker != null)
             tracker.updatePlayer(playerToShow);
     }
@@ -181,27 +203,19 @@ public class PktStatics {
      * @param entity Entity that will share tracker with player
      */
     public static void synchronizeTracker(@NotNull EntityPlayer player, @NotNull Entity entity) {
-        PlayerChunkMap playerChunkMap = ((WorldServer) player.world).getChunkProvider().playerChunkMap;
-        PlayerChunkMap.EntityTracker tracker = playerChunkMap.trackedEntities.get(player.getId());
-        playerChunkMap.trackedEntities.put(entity.getId(), tracker);
+        PlayerChunkMap playerChunkMap = ((WorldServer) player.getWorld()).getChunkProvider().a;
+        PlayerChunkMap.EntityTracker tracker = playerChunkMap.G.get(player.getId());
+        playerChunkMap.G.put(entity.getId(), tracker);
 
     }
 
-    public static @NotNull EntityPlayer createEntityPlayerCopy(@NotNull EntityPlayer original) {
-        EntityPlayer cpy = new EntityPlayer(getNmsServer(), original.getWorldServer(), original.getProfile(), new PlayerInteractManager(original.getWorldServer()));
-        cpy.copyFrom(original, false);
-        cpy.e(original.getId());
-        cpy.a(original.getMainHand());
-
-        return cpy;
-    }
 
     public static PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook relMoveLook(int id, @NotNull EntityPlayer player) {
         return new PacketPlayOutEntity.PacketPlayOutRelEntityMoveLook(id,
-                (short) ((player.locX() * 32 - player.lastX * 32) * 128),
-                (short) ((player.locY() * 32 - player.lastY * 32) * 128),
-                (short) ((player.locZ() * 32 - player.lastZ * 32) * 128),
-                (byte) ((int) (player.yaw * 256.0F / 360.0F)), (byte) 0, player.isOnGround());
+                (short) ((player.locX() * 32 - player.locX() * 32) * 128),
+                (short) ((player.locY() * 32 - player.locY() * 32) * 128),
+                (short) ((player.locZ() * 32 - player.locZ() * 32) * 128),
+                (byte) ((int) (player.getBukkitYaw() * 256.0F / 360.0F)), (byte) 0, player.isOnGround());
     }
 
 
@@ -215,11 +229,8 @@ public class PktStatics {
                 ((EntityArmorStand) entity).setMarker(true);
             }
             entity.setSilent(true);
-            entity.setBoundingBox(new AxisAlignedBB(0, 0, 0, 0, 0, 0));
-
             if (entity instanceof EntityLiving)
                 ((EntityLiving) entity).collides = false;
-
         }
     }
 }

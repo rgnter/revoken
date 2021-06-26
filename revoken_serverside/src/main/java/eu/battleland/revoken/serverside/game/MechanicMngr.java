@@ -7,20 +7,20 @@ import eu.battleland.revoken.common.providers.storage.data.codec.ICodec;
 import eu.battleland.revoken.common.providers.storage.data.codec.meta.CodecKey;
 import eu.battleland.revoken.common.providers.storage.flatfile.store.AStore;
 import eu.battleland.revoken.serverside.RevokenPlugin;
-import eu.battleland.revoken.serverside.game.mechanics.SittingMechanic;
-import eu.battleland.revoken.serverside.game.mechanics.gamechanger.items.ItemsMechanic;
-import eu.battleland.revoken.serverside.game.mechanics.gamechanger.wearables.WearablesMechanic;
-import eu.battleland.revoken.serverside.game.mechanics.magic.alchemy.AlchemyMechanic;
-import eu.battleland.revoken.serverside.game.mechanics.spawners.SpawnersMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.common.SittingMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.common.items.ItemsMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.common.spawners.SpawnersMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.common.wearables.WearablesMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.magical.alchemy.AlchemyMechanic;
+import eu.battleland.revoken.serverside.game.mechanics.magical.sentients.SentientsMechanic;
 import eu.battleland.revoken.serverside.providers.statics.PktStatics;
-
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.server.v1_16_R3.PacketPlayOutGameStateChange;
+import net.minecraft.network.protocol.game.PacketPlayOutGameStateChange;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +77,7 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
                 }
 
                 if (player.isOnline())
-                    nmsPlayer.playerConnection.sendPacket(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.h, i));
+                    nmsPlayer.b.sendPacket(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.h, i));
                 else {
                     requester.ifPresentOrElse((sender) -> {
                         sender.sendMessage("§aBroke them.");
@@ -106,7 +106,8 @@ public class MechanicMngr extends AMngr<RevokenPlugin, AMechanic<RevokenPlugin>>
 
                     new SpawnersMechanic(getPlugin()),
 
-                    new AlchemyMechanic(getPlugin())
+                    new AlchemyMechanic(getPlugin()),
+                    new SentientsMechanic(getPlugin())
             );
 
             log.info("Constructing and Initializing Mechanics");

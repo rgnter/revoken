@@ -1,5 +1,6 @@
 package eu.battleland.revoken.serverside.game.controllers.security;
 
+import com.destroystokyo.paper.event.server.AsyncTabCompleteEvent;
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AController;
 import eu.battleland.revoken.common.providers.api.discord.DiscordWebhook;
@@ -280,18 +281,17 @@ public class BattleSecController extends AController<RevokenPlugin> implements L
             }
         });
 
-        if (this.disallowedMaterials.contains(event.getBlockPlaced().getType())) {
+        if (this.disallowedMaterials.contains(event.getBlock().getType())) {
             if (event.getPlayer().hasPermission("revoken.staff")) {
                 log.info("Player {} bypasses place check", event.getPlayer().getName());
                 return;
             }
 
-            notifyStaff("Player '{}' tried placing disallowed block: {}({},{},{})",
-                    player.getName(), "bedrock", location.getBlockX(), location.getBlockY(), location.getBlockZ()
+            notifyStaff("Player '%s' tried placing disallowed block: %s(%ď,%d,%d %s)",
+                    player.getName(), "bedrock", location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName()
             );
 
             event.setCancelled(true);
-            event.getPlayer().getInventory().clear();
             player.banPlayer("§c§lBattleSec §7- §fSi podozrelý z podvádzania. Stala sa niekde chyba? \n §fNapíš nám na §9discord.battleland.eu");
         }
     }

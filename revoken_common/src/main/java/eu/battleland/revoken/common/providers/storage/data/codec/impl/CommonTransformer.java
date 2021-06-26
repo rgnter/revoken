@@ -12,6 +12,7 @@ import org.bspfsystems.yamlconfiguration.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CommonTransformer extends AuxCodec.Transformer {
@@ -48,6 +49,10 @@ public class CommonTransformer extends AuxCodec.Transformer {
 
     @Getter
     public final Map<Class<?>, ThrowingBiFunction<Object, Object, Object, Exception>> decodeTransformers = new HashMap<>() {{
+
+        put(Iterable.class, (origin, source) -> {
+            return source;
+        });
 
         put(Byte.class, (origin, source) -> {
             try {
@@ -138,9 +143,11 @@ public class CommonTransformer extends AuxCodec.Transformer {
     public void decode(@NotNull CodecField codecField, @NotNull AuxData data) throws CodecException {
         final String key = codecField.getKey().value();
         final Class<?> type;
-        final Object value = codecField.getValue().getValue();
+        final Object origin = codecField.getValue().getValue();
 
-        if(ICodec.class.isAssignableFrom(codecField.getValue().getType()))
+        final boolean isArray = Iterable.class.isAssignableFrom(codecField.getValue().getType());
+
+        if (ICodec.class.isAssignableFrom(codecField.getValue().getType()))
             type = ICodec.class;
         else
             type = codecField.getValue().getType();
@@ -151,30 +158,30 @@ public class CommonTransformer extends AuxCodec.Transformer {
 
         Object source;
         // if codec field is ICodec
-        if(type.equals(ICodec.class)) {
-
+        if (type.equals(ICodec.class)) {
             // require default value for codec field
-            if(value == null)
+            if (origin == null)
                 throw new CodecException("Specify default value (transformer can not deduce class fields of specified codec)", codecField);
 
             // is source parsable or data
-            if(!((ICodec) value).dataAdapterType().isParsable())
+            if (!((ICodec) origin).dataAdapterType().isParsable())
                 source = data.getSector(key);
+            else {
+                source = data.getString(key);
+            }
+        } else {
+            if (isArray)
+                source = data.getStringList(key);
             else
                 source = data.getString(key);
         }
-        else
-            source = data.getString(key);
 
         if (source == null)
             throw new CodecException("Missing codec key in data", codecField);
         try {
-            codecField.getValue().setValue(transformer.apply(value, source));
+            codecField.getValue().setValue(transformer.apply(origin, source));
         } catch (Exception e) {
             throw new CodecException("Failed to decode field", e, codecField);
         }
-
     }
-
-
 }

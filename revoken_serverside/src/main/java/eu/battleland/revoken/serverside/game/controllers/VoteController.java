@@ -11,7 +11,6 @@ import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.Bukkit;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDateTime;

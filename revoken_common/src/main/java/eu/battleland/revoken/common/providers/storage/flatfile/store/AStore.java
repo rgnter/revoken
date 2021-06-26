@@ -212,6 +212,7 @@ public abstract class AStore {
 
         @Override
         public void load() throws Exception {
+            final var time = -System.nanoTime();
             try (Reader reader = new FileReader(this.file, StandardCharsets.UTF_8)) {
                 this.yamlData = new YamlConfiguration();
                 this.yamlData.load(reader);
@@ -220,6 +221,7 @@ public abstract class AStore {
             } catch (Exception x) {
                 throw new Exception("Failed to load '" + getResourcePath() + "': " + x.getMessage(), x);
             }
+            System.out.printf("%d", time+System.nanoTime());
         }
 
         @Override

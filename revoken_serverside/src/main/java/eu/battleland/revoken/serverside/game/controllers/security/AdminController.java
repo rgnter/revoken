@@ -3,69 +3,59 @@ package eu.battleland.revoken.serverside.game.controllers.security;
 import com.mojang.authlib.GameProfile;
 import eu.battleland.revoken.common.Revoken;
 import eu.battleland.revoken.common.abstracted.AController;
-import eu.battleland.revoken.common.providers.api.discord.DiscordWebhook;
 import eu.battleland.revoken.serverside.RevokenPlugin;
 import eu.battleland.revoken.serverside.providers.statics.PermissionStatics;
 import eu.battleland.revoken.serverside.providers.statics.PktStatics;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
-import net.minecraft.server.v1_16_R3.MinecraftServer;
-import net.minecraft.server.v1_16_R3.PlayerInteractManager;
+
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.PlayerInteractManager;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.ShulkerBox;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_16_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.entity.Item;
+
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryCreativeEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.permissions.PermissionDefault;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Log4j2(topic = "Admin Controller")
 public class AdminController extends AController<RevokenPlugin> implements Listener {
 
-    private final Map<UUID, InventorySeeHolder> modifiedInventories = new ConcurrentHashMap<>();
+    @Getter
+    public static AdminController instance;
+
+    private final Map<UUID, Inventory> liveAdminViews = new ConcurrentHashMap<>();
+    @Getter
+    private final Set<UUID> frozenPlayers = new HashSet<>();
 
     public AdminController(@NotNull Revoken<RevokenPlugin> plugin) {
         super(plugin);
+        instance = this;
     }
 
     @Override
     public void initialize() throws Exception {
-        Bukkit.getPluginManager().registerEvents(this, getPlugin().instance());
         PermissionStatics.newPermission("revoken.staff", PermissionDefault.OP);
 
         Bukkit.getCommandMap().register("revoken", new Command("invsee") {
@@ -87,6 +77,36 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
                 return true;
             }
         });
+        Bukkit.getCommandMap().register("revoken", new Command("freeze") {
+            @Override
+            public boolean execute(@NotNull CommandSender sender, @NotNull String s, @NotNull String[] args) {
+                if (!sender.hasPermission("revoken.admin"))
+                    return true;
+
+                if(args.length < 1) {
+                    sender.sendMessage("§cSpecify player name.");
+                    return true;
+                }
+                String name = args[0];
+                final Player target = Bukkit.getPlayer(name);
+                if(target == null) {
+                    sender.sendMessage("§cInvalid player");
+                    return true;
+                }
+
+                if(frozenPlayers.contains(target.getUniqueId())) {
+                    frozenPlayers.remove(target.getUniqueId());
+                    sender.sendMessage("§aUnfrozen " + name);
+                } else {
+                    frozenPlayers.add(target.getUniqueId());
+                    sender.sendMessage("§aForzen " + name);
+                }
+
+                return true;
+            }
+        });
+
+        Bukkit.getPluginManager().registerEvents(this, getPlugin().instance());
     }
 
     @Override
@@ -98,7 +118,6 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
     public void reload() {
 
     }
-
 
     private void manageInventory(CommandSender sender, @NotNull String[] args, boolean enderchest) {
         final boolean textOnly = !(sender instanceof Player);
@@ -119,8 +138,9 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
 
         final boolean isOnline;
         final Inventory originalInventory;
+        Inventory adminView = null;
 
-        final InventorySeeHolder inventoryHolder;
+        final AdminViewHolder inventoryHolder;
         if (targetPlayer == null) {
             targetPlayer = Bukkit.getOfflinePlayer(target);
 
@@ -128,21 +148,20 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
             EntityPlayer targetNmsPlayer = new EntityPlayer(
                     MinecraftServer.getServer(),
                     worldServer,
-                    new GameProfile(targetPlayer.getUniqueId(), ""),
-                    new PlayerInteractManager(worldServer)
+                    new GameProfile(targetPlayer.getUniqueId(), "")
             );
             CraftPlayer targetBukkitPlayer = new CraftPlayer(((CraftServer) Bukkit.getServer()), targetNmsPlayer);
             targetBukkitPlayer.loadData();
 
             originalInventory = enderchest ? targetBukkitPlayer.getEnderChest() : targetBukkitPlayer.getInventory();
-            inventoryHolder = new InventorySeeHolder() {
+            inventoryHolder = new AdminViewHolder() {
                 @Override
                 public @NotNull Inventory getInventory() {
                     return originalInventory;
                 }
 
                 @Override
-                public void modifyOriginalInventory() {
+                public void updateOriginal(@NotNull Inventory adminView) {
                     targetBukkitPlayer.saveData();
                 }
             };
@@ -151,40 +170,70 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
             sender.sendMessage("§aPreparing online inventory");
 
             originalInventory = enderchest ? ((Player) targetPlayer).getEnderChest() : ((Player) targetPlayer).getInventory();
-            inventoryHolder = new InventorySeeHolder() {
+
+            inventoryHolder = new AdminViewHolder() {
                 @Override
                 public @NotNull Inventory getInventory() {
                     return originalInventory;
                 }
 
                 @Override
-                public void modifyOriginalInventory() {
+                public void updateAdminView(@NotNull Inventory adminView) {
+                    AdminController.this.updateAdminView(originalInventory, adminView, !enderchest);
+                }
 
+                @Override
+                public void updateOriginal(@NotNull Inventory adminView) {
+                    final int playerInvSize = getInventory().getSize();
+                    for (int i = 0; i < playerInvSize; i++) {
+                        getInventory().setItem(i, adminView.getItem(i));
+                    }
                 }
             };
             isOnline = true;
         }
 
-        Inventory newInventory = Bukkit.createInventory(
-                inventoryHolder,
-                enderchest ? originalInventory.getSize() : 54,
-                (enderchest ? "Ender Chest" : "Inventory") + " of " + (isOnline ? "§a" : "§c") + target
-        );
-        final int playerInvSize = originalInventory.getSize();
-        for (int i = 0; i < playerInvSize; i++) {
-            newInventory.setItem(i, originalInventory.getItem(i));
+        if (!textOnly) {
+            adminView = Bukkit.createInventory(
+                    inventoryHolder,
+                    enderchest ? originalInventory.getSize() : 54,
+                    (enderchest ? "Ender Chest" : "Inventory") + " of " + (isOnline ? "§a" : "§c") + target
+            );
+            updateAdminView(originalInventory, adminView, !enderchest);
+            this.liveAdminViews.put(targetPlayer.getUniqueId(), adminView);
         }
-        if (!enderchest)
-            addHints(newInventory);
 
         if (textOnly) {
-            sender.sendMessage("§aShowing inventory");
+            sender.sendMessage("§aListing inventory of player " + targetPlayer.getName());
+            originalInventory.forEach(item -> {
+                if (item == null)
+                    return;
+                final var itemMeta = item.getItemMeta();
+                sender.sendMessage(String.format("    %s§r %s(x%d) %s",
+                        itemMeta.getDisplayName(),
+                        item.getType().name(),
+                        item.getAmount(),
+                        (itemMeta.hasLore() ? itemMeta.getLore().stream()
+                                .map(ChatColor::stripColor)
+                                .collect(Collectors.joining(" ; ", "Lore: [", "] ")) : ""
+                        )
+                        ));
+            });
         } else {
-            ((Player) sender).openInventory(newInventory);
-            this.modifiedInventories.put(targetPlayer.getUniqueId(), inventoryHolder);
+            ((Player) sender).openInventory(adminView);
+            this.liveAdminViews.put(targetPlayer.getUniqueId(), adminView);
             sender.sendMessage((isOnline ? "§7Opened online inventory" : "§7Opened offline inventory") + " of player '" + target + "'");
         }
+    }
 
+    private void updateAdminView(@NotNull final Inventory originalInventory, @NotNull Inventory adminInventory, boolean addHints) {
+        adminInventory.clear();
+        final int playerInvSize = originalInventory.getSize();
+        for (int i = 0; i < playerInvSize; i++) {
+            adminInventory.setItem(i, originalInventory.getItem(i));
+        }
+        if (addHints)
+            addHints(adminInventory);
     }
 
     private void addHints(Inventory inventory) {
@@ -233,6 +282,8 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
         offhandHintMeta.addItemFlags(ItemFlag.values());
         offhandHint.setItemMeta(offhandHintMeta);
         inventory.setItem(49, offhandHint);
+
+
     }
 
     public boolean hasHintMetadata(ItemStack clicked) {
@@ -241,12 +292,13 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
         return false;
     }
 
+
     @EventHandler
-    public void onInventoryInteract(InventoryClickEvent event) {
+    public void handleAdminInventoryHintClickEvent(InventoryClickEvent event) {
         if (!event.getWhoClicked().hasPermission("revoken.admin"))
             return;
 
-        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof InventorySeeHolder))
+        if (event.getClickedInventory() == null || !(event.getClickedInventory().getHolder() instanceof AdminViewHolder))
             return;
 
         if (event.getCurrentItem() != null)
@@ -255,28 +307,43 @@ public class AdminController extends AController<RevokenPlugin> implements Liste
     }
 
     @EventHandler
-    public void onInventoryClose(InventoryCloseEvent event) {
-        if (!event.getPlayer().hasPermission("revoken.admin"))
+    public <T extends InventoryEvent>void handleOriginalInventoryUpdate(T event) {
+        final var inventory = event.getInventory();
+        if( inventory == null || inventory.getHolder() == null || !(inventory.getHolder() instanceof CraftPlayer))
+            return;
+        final var player = (Player) inventory.getHolder();
+        if (!this.liveAdminViews.containsKey(player.getUniqueId()))
             return;
 
-        var holder = event.getInventory().getHolder();
-        if (!(holder instanceof InventorySeeHolder))
-            return;
-        InventorySeeHolder identifiedHolder = (InventorySeeHolder) holder;
-        Inventory original = identifiedHolder.getInventory();
-        Inventory changed = event.getInventory();
 
-        final int playerInvSize = original.getSize();
-        for (int i = 0; i < playerInvSize; i++) {
-            original.setItem(i, changed.getItem(i));
-        }
-        identifiedHolder.modifyOriginalInventory();
-        event.getPlayer().sendMessage("§aSaved inventory");
+        final var adminInventory = this.liveAdminViews.get(player.getUniqueId());
+        ((AdminViewHolder) adminInventory.getHolder()).updateAdminView(event.getInventory());
+    }
+
+    @EventHandler
+    public void handleAdminInventoryUpdate(InventoryCloseEvent event) {
+        final var inventory = event.getInventory();
+        if(inventory == null)
+            return;
+        final var player = event.getPlayer();
+        if (!player.hasPermission("revoken.admin"))
+            return;
+
+        var holder = inventory.getHolder();
+        if (!(holder instanceof AdminViewHolder))
+            return;
+        AdminViewHolder identifiedHolder = (AdminViewHolder) holder;
+        identifiedHolder.updateOriginal(event.getInventory());
+
+        player.sendMessage("§aSaved inventory");
     }
 
 
-    private static interface InventorySeeHolder extends InventoryHolder {
-        void modifyOriginalInventory();
+    private static interface AdminViewHolder extends InventoryHolder {
+        default void updateAdminView(@NotNull Inventory adminView) {
+        }
+
+        void updateOriginal(@NotNull Inventory adminView);
     }
 
 }

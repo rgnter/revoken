@@ -4,13 +4,13 @@ import eu.battleland.revoken.common.abstracted.AController;
 import eu.battleland.revoken.common.abstracted.AMngr;
 import eu.battleland.revoken.common.diagnostics.timings.Timer;
 import eu.battleland.revoken.serverside.RevokenPlugin;
+import eu.battleland.revoken.serverside.game.controllers.InterfaceController;
 import eu.battleland.revoken.serverside.game.controllers.VoteController;
+import eu.battleland.revoken.serverside.game.controllers.chat.ChatController;
 import eu.battleland.revoken.serverside.game.controllers.security.AdminController;
 import eu.battleland.revoken.serverside.game.controllers.security.BattleRepController;
-import eu.battleland.revoken.serverside.game.controllers.chat.ChatController;
 import eu.battleland.revoken.serverside.game.controllers.security.BattleSecController;
 import eu.battleland.revoken.serverside.game.controllers.security.SafeguardController;
-import eu.battleland.revoken.serverside.game.controllers.uxui.InterfaceController;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 

@@ -206,7 +206,7 @@ public class BattleRepController extends AController<RevokenPlugin> {
         final var nmsPlayer = PktStatics.getNmsPlayer(player);
 
         final Location playerLocation = player.getLocation();
-        final int playerPing = nmsPlayer.ping;
+        final int playerPing = player.getPing();
         final var rsStatus = player.getResourcePackStatus();
         final int lastTps = (int) Bukkit.getServer().getTPS()[0];
 
